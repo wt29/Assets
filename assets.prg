@@ -64,9 +64,6 @@ set( _SET_DEBUG, .t. )
 set( _SET_AUTOPEN, TRUE )
 set( _SET_AUTORDER, TRUE )
 
-// sCmdParams = DosParam()
-
-
 if type( "sCmdParams" ) != 'U'
  if right( trim( m->sCmdParams ), 1 ) != '\'
    m->sCmdParams += '\'
@@ -90,8 +87,6 @@ if len( directory( Oddvars( SYSPATH ) + '*.dbf' ) ) = 0
 endif 
 
 // These routines will allow you to patch either if a new dbf (table) is required or if a new field is required for a dbf
-
-ChkField( 'Company', 'bvars' )
 
 Oddvars( ENQ_STATUS, TRUE )
 Oddvars( IS_SPOOLING, FALSE )
@@ -170,7 +165,7 @@ box_restore( aBox )
 
 sNoColor := SysColor( C_NORMAL )
 
-Print_find( 'report' )   // Set up the default printer
+// Print_find( 'report' )   // Set up the default printer
 
 while TRUE
 

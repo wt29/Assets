@@ -9,7 +9,7 @@ rem set HB_MT=MT
 
 rem nmake
 call m_vc.cmd
-if not exist winrent.exe goto noexe
+if not exist assets.exe goto noexe
 goto end
 :noexe 
 echo No executable generated
