@@ -145,8 +145,8 @@ endif
 // altd(1)
 
 setkey( K_SH_F1, { || Print_swap() } )
-setkey( K_F2, { || StuffLastItem() } )
-setkey( K_F3, { || StuffLastCont() } )
+// setkey( K_F2, { || StuffLastItem() } )
+// setkey( K_F3, { || StuffLastCont() } )
 setkey( K_F5, { || Free_enq() } )
 // setkey( K_F6, { || Calendar() } )
 setkey( K_CTRL_F5, { || ShowCallStack() } )

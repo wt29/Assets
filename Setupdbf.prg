@@ -168,6 +168,20 @@ aadd( aFldDef, { "password", "c", 10, 0 } )
 aadd( aFldDef, { "mask", "c", 50, 0 } )
 dbcreate( sPath + "operator" + sFileExtension, aFldDef)
 
+// nodes
+aFldDef := {} 
+aadd( aFldDef, { "node", "c", 20, 0 } )
+aadd( aFldDef, { "printer", "c", 50, 0 } )
+aadd( aFldDef, { "report_name", "c", 50, 0 } )
+aadd( aFldDef, { "barcode_name", "c", 50, 0 } )
+aadd( aFldDef, { "colattr", "n", 2, 0 } )
+aadd( aFldDef, { "backgr", "l", 1, 0 } )
+aadd( aFldDef, { "shadow", "l", 1, 0 } )
+aadd( aFldDef, { "good", "n", 3, 0 } )
+aadd( aFldDef, { "bad", "n", 3, 0 } )
+dbcreate( sPath + "nodes" + sFileExtension, aFldDef )
+
+
 return nil
 
 *
