@@ -26,3 +26,5 @@ dbfstru/
 *.map
 *.exp
 *.std
+*.exe
+*.lib
