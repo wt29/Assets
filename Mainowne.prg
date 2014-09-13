@@ -8,7 +8,7 @@
       Last change:  TG   18 Oct 2010   10:53 pm
 */
 
-#include "winrent.ch"
+#include "assets.ch"
 
 Function Mainowne
 
@@ -16,7 +16,7 @@ local ok := FALSE, getlist:={}, mown, choice, loopval
 local aArray, cOldOwner, cNewOwner
 local oldscr := Box_Save()
 
-if NetUse( "items" )
+if NetUse( "assets" )
 
  if NetUse( "owner"  )
 
@@ -36,14 +36,14 @@ while ok
  aadd( aArray, { 'Add', 'Add new owners' } )
  aadd( aArray, { 'Change', 'Change owner details' } )
  aadd( aArray, { 'Delete', 'Delete old owners' } )
- aadd( aArray, { 'Global', 'Change all items on old owner to new' } )
- choice := MenuGen( aArray, 05, 13, 'Owner' )
+ aadd( aArray, { 'Global', 'Change all assets on old owner to new' } )
+ choice := MenuGen( aArray, 04, 13, 'Owner' )
 
  if choice < 2
   exit
  endif
  
- mown = space(3)
+ mown = space( OWNER_CODE_LEN )
 
  do case
  case choice = 2 .and. Secure( X_ADDFILES )
@@ -62,7 +62,7 @@ while ok
    else
 
     Add_rec( 'owner' )
-    owner->code := mown
+    owner->id := mown
     Box_Save( 02, 09, 11, 71 )
     @ 03,11 say '          Name' get owner->name
     @ 05,11 say '       Address' get owner->add1
@@ -117,10 +117,10 @@ while ok
 
    else
 
-    select items
-    locate for items->owner_code = mown .and. items->status != 'D'
+    select assets
+    locate for assets->ownerID = mown .and. assets->status != 'D'
     if found()
-     Error( 'Items still present for owner - cannot delete', 12 )
+     Error( 'assets still present for owner - cannot delete', 12 )
 
     else
 
@@ -143,7 +143,7 @@ while ok
   endif
 
  case choice = 5 .and. Secure( X_EDITFILES )
-  Heading('Change all items on one owner to another')
+  Heading('Change all assets on one owner to another')
 
   cOldOwner = space( OWNER_CODE_LEN )
   Box_Save( 10, 22, 12, 55 )
@@ -172,16 +172,16 @@ while ok
      else
       Highlight( 5, 10, '      New owner code ', owner->name )
       if Isready( 12 )
-       items->( dbgotop() )
-       while ! items->( eof() )
-        Highlight( 7, 10, 'Item Code', items->item_code )
-        if items->owner_code = cOldOwner
-         Rec_lock( 'items' )
-         items->owner_code := cNewOwner
-         items->( dbrunlock() )
+       assets->( dbgotop() )
+       while ! assets->( eof() )
+        Highlight( 7, 10, 'Asset ID', assets->assetID )
+        if assets->ownerID = cOldOwner
+         Rec_lock( 'assets' )
+         assets->ownerID := cNewOwner
+         assets->( dbrunlock() )
 
         endif
-        items->( dbskip() )
+        assets->( dbskip() )
 
        enddo
 

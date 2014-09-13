@@ -40,8 +40,8 @@ if goforit .or. Isready( )
  if NetUse("assets",EXCLUSIVE,10)
   PackStat( packindx, 'Assets file')
 
-  if !file( Oddvars( SYSPATH ) + 'items' + indexext() ) .or. must_index
-   indx( 'id', 'id' )
+  if !file( Oddvars( SYSPATH ) + 'assets' + indexext() ) .or. must_index
+   indx( 'assetid', 'assetid' )
    indx( 'serial', 'serial' )
    indx( 'model', 'model' )
 

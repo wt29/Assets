@@ -14,46 +14,46 @@
 procedure UtilSPPA
 
 local getlist := {}
-local mbvars := bvarget()    // this should return an array of all bvars
-local mcon_no := Sysinc( 'con_no' )
-local aLocalVars := lvarget()
+local aGlobalVars := bvarget()    // this will return an array of all globalVars
+// local mcon_no := Sysinc( 'con_no' )
+local aLocalVars := lvarget()  
 local oKF2, oKF9
-*
 
 cls
 Heading( 'Setup System data' )
 
-@ 02,05 say '  Company Name' get mbvars[ B_COMPANY ]
-@ 04,05 say 'Address line 1' get mbvars[ B_ADDRESS1 ] 
-@ 05,05 say 'Address line 2' get mbvars[ B_ADDRESS2 ] 
-@ 06,05 say '   City/suburb' get mbvars[ B_SUBURB ]
-@ 07,05 say '      Postcode' get mbvars[ B_PCODE ] pict '9999'
-@ 08,05 say '      Phone no' get mbvars[ B_PHONE ] pict '(999)9999-9999'
+@ 02,05 say '  Company Name' get aGlobalVars[ B_COMPANY ]
+@ 04,05 say 'Address line 1' get aGlobalVars[ B_ADDRESS1 ] 
+@ 05,05 say 'Address line 2' get aGlobalVars[ B_ADDRESS2 ] 
+@ 06,05 say '   City/suburb' get aGlobalVars[ B_SUBURB ]
+@ 07,05 say '      Postcode' get aGlobalVars[ B_PCODE ] pict '9999'
+@ 08,05 say '      Phone no' get aGlobalVars[ B_PHONE ] pict '(999)9999-9999'
 
-@ 11,05 say '  Month for end of year' get mbvars[ B_EOY ] pict '99' ;
-       valid( mbvars[ B_EOY ] $ '01|02|03|04|05|06|07|08|09|10|11|12')
+@ 11,05 say '  Month for end of year' get aGlobalVars[ B_EOY ] pict '99' ;
+       valid( mglobalVars[ B_EOY ] $ '01|02|03|04|05|06|07|08|09|10|11|12')
 @ 11,35 say "'06' for June,'03' for March etc"
-@ 12,05 say ' Assets Fiscal Year End' get mbvars[ B_FAFISCALY ]
-@ 13,05 say 'Default owner' get mbvars[ B_DEF_OWNER ] pict '!!!'
+// @ 12,05 say 'Assets Fiscal Year End' get aGlobalVars[ B_FAFISCALY ]
+@ 13,05 say 'Default owner' get aGlobalVars[ B_DEF_OWNER ] pict '!!!'
 @ 14,04 say 'Report Printer' get aLocalVars[ L_REPORT_NAME ] pict 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
-@ 15,04 say 'Letter Printer' get aLocalVars[ L_LETTER_NAME ] pict 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
+@ 15,03 say 'Barcode Printer' get aLocalVars[ L_BARCODE_NAME ] pict 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
 @ 16,10 say 'Use the Windows Printer Name! - UNC is OK too. !Case Sensitive'
-@ 22,01 say 'Editor Program' get mbvars[ B_EDITOR ]
+@ 22,01 say 'Editor Program' get aGlobalVars[ B_EDITOR ]
 
 okF2 := setkey( K_F2, { || SysData() } )
-okF9 := setkey( K_F9, { || SMTP() } )
+// okF9 := setkey( K_F9, { || SMTP() } )
 
 read
 
 setkey( K_F2, okF2 )
-setkey( K_F9, okF9 )
 
-Bvarsave()
+// setkey( K_F9, okF9 )
+
+globalVarsave()
 Lvarsave()
 
 Print_find( 'report' )
 
-Sysinc( 'CON_NO', 'R', mcon_no )
+// Sysinc( 'CON_NO', 'R', mcon_no )
 
 return
 
@@ -61,16 +61,16 @@ return
 
 proc sd_set
 local getlist:={}
-local mdate := Bvars( B_SYSDATE )
-local nGSTRate := Bvars( B_GSTRATE )
+local mdate := globalVars( B_SYSDATE )
+local nGSTRate := globalVars( B_GSTRATE )
 local mscr := Box_Save( 2, 25, 5, 56 )
 @ 3,27 say 'System Date' get mdate
 @ 4,27 say '   GST Rate' get nGSTRate pict '99.99'
 read
-Bvars( B_SYSDATE, mdate )
-Bvars( B_GSTRATE, nGSTRate )
-BvarSave()
-Oddvars( SYSDATE, Bvars( B_SYSDATE ) )
+globalVars( B_SYSDATE, mdate )
+globalVars( B_GSTRATE, nGSTRate )
+globalVarsave()
+Oddvars( SYSDATE, globalVars( B_SYSDATE ) )
 Box_Restore( mscr )
 return
 
@@ -148,7 +148,7 @@ objEmail.Send
 
       // sending data via internet connection
       IF oSmtp:open()
-         oSmtp:sendMail( oEMail )
+//         oSmtp:sendMail( oEMail )
          oSmtp:close()
          error( "Mail sent" )
      ELSE

@@ -26,7 +26,6 @@ if lOK
  
  if lOK
   Create_dbfs()
- // wait
   mdbfarr := Directory( Oddvars( SYSPATH ) + '*.dbf' )
 
   if len( mdbfarr ) != 0
@@ -59,12 +58,7 @@ if len( directory( Oddvars( SYSPATH ) + 'dbfstru', 'D' ) ) = 0
 
 endif
 
-if len( directory( oddvars( SYSPATH) + 'mcomment', 'D' ) ) = 0      // Master file comments
- makedir( oddvars( SYSPATH) + 'mcomment' )
-
-endif
-
-if len( directory( oddvars( SYSPATH) + 'icomment', 'D' ) ) = 0      // Item Comments
+if len( directory( oddvars( SYSPATH) + 'icomment', 'D' ) ) = 0      // Asset - Item Comments
  makedir( oddvars( SYSPATH) + 'icomment' )
 
 endif
@@ -83,14 +77,13 @@ local aFldDef
 default spath to Oddvars( SYSPATH ) + "dbfstru\" 
 default sFileExtension to TEMP_EXT
 
-
 // Assets
 aFldDef:={}
-aadd( aFldDef, { "id", "c", 10, 0 } )
+aadd( aFldDef, { "assetid", "c", ASSET_CODE_LEN, 0 } )
 aadd( aFldDef, { "serial", "c", 40, 0 } )
 aadd( aFldDef, { "desc", "c", 40, 0 } )
 aadd( aFldDef, { "model", "c", 30, 0 } )
-aadd( aFldDef, { "ownerId", "c", 3, 0 } )
+aadd( aFldDef, { "ownerId", "c", OWNER_CODE_LEN, 0 } )
 aadd( aFldDef, { "location", "c", 10, 0 } )
 aadd( aFldDef, { "prevLocation", "c", 10, 0 } )
 aadd( aFldDef, { "cost", "n", 8, 2 } )
@@ -112,7 +105,7 @@ dbcreate( sPath + "assets" + sFileExtension, aFldDef )
 
 // Product Code
 aFldDef:={}
-aadd( aFldDef, { "ID", "c", 10, 0 } )
+aadd( aFldDef, { "id", "c", 10, 0 } )
 aadd( aFldDef, { "name", "c", 30, 0 } )
 dbcreate( sPath + "prodcode" + sFileExtension, aFldDef )
 
@@ -128,9 +121,9 @@ aadd( aFldDef, { "ID", "c", 1, 0 } )
 aadd( aFldDef, { "desc", "c", 30, 0 } )
 dbcreate( sPath + "location" + sFileExtension, aFldDef )
 
-// owner.r99
+// Owner
 aFldDef:={}
-aadd( aFldDef, { "ID", "c", 3, 0 } )
+aadd( aFldDef, { "id", "c", 3, 0 } )
 aadd( aFldDef, { "name", "c", 30, 0 } )
 aadd( aFldDef, { "add1", "c", 30, 0 } )
 aadd( aFldDef, { "add2", "c", 30, 0 } )
@@ -139,7 +132,7 @@ aadd( aFldDef, { "contact", "c", 30, 0 } )
 aadd( aFldDef, { "lastpay", "d", 8, 0 } )
 dbcreate( sPath + "owner" + sFileExtension, aFldDef )
 
-// bvars.r99
+// globalVars.r99
 aFldDef:={}
 aadd( aFldDef, { "address1", "c", 30, 0 } )
 aadd( aFldDef, { "address2", "c", 30, 0 } )
@@ -153,7 +146,7 @@ aadd( aFldDef, { "printer1", "c", 30, 0 } )
 aadd( aFldDef, { "printer2", "c", 30, 0 } )
 aadd( aFldDef, { "editor", "c", 50, 0 } )   // May need the path as well
 aadd( aFldDef, { "company", "c", 30, 0 } )
-dbcreate( sPath + "bvars" + sFileExtension, aFldDef )
+dbcreate( sPath + "globalVars" + sFileExtension, aFldDef )
 
 // System
 aFldDef := {}
@@ -168,7 +161,7 @@ aadd( aFldDef, { "password", "c", 10, 0 } )
 aadd( aFldDef, { "mask", "c", 50, 0 } )
 dbcreate( sPath + "operator" + sFileExtension, aFldDef)
 
-// nodes
+// nodes aka the Local Vars (lvars)
 aFldDef := {} 
 aadd( aFldDef, { "node", "c", 20, 0 } )
 aadd( aFldDef, { "printer", "c", 50, 0 } )
@@ -181,6 +174,10 @@ aadd( aFldDef, { "good", "n", 3, 0 } )
 aadd( aFldDef, { "bad", "n", 3, 0 } )
 dbcreate( sPath + "nodes" + sFileExtension, aFldDef )
 
+// sysrec.r99
+aFldDef:={}
+aadd( aFldDef, { "FileNo", "n", 6, 0 } )
+dbcreate( sPath + "sysrec" + sFileExtension, aFldDef )
 
 return nil
 

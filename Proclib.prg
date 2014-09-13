@@ -14,7 +14,7 @@
 #include "set.ch"
 #include "fileio.ch"
 
-static mbvars := {}, mlVars := {}
+static mglobalVars := {}, mlVars := {}
 static spfile := 'spool'
 static spfile_no := 1
 static l_printer := ''
@@ -35,7 +35,7 @@ Syscolor( C_INVERSE )
 @ 0,0
 @ 0,1 say date()
 @ 0,40 - len( cHeading )/2 say cHeading
-// @ 0,61 say 'Sys Date ' + dtoc( Bvars( B_SYSDATE ) )
+// @ 0,61 say 'Sys Date ' + dtoc( globalVars( B_SYSDATE ) )
 
 cOldHeading := cHeading
 setcolor( sOldColor )
@@ -402,7 +402,7 @@ case pcode = 'D'
  pminext := pcurrent + pnumperiod
 otherwise
  if empty( pcurrent )
-  pcurrent := Bvars( B_SYSDATE )
+  pcurrent := globalVars( B_SYSDATE )
  endif
  totmths := month( pcurrent ) + pnumperiod
  new_month := Ns( int( totmths % 12 ) )
@@ -609,9 +609,9 @@ return { t, l, min( 24, b+1 ), min( 79, r+2 ), ssave, oldcolor }
 
 *
 
-Function Box_Restore ( aArrayay )    // the array version of above
-restscreen( aArrayay[ 1 ], aArrayay[ 2 ], aArrayay[ 3 ], aArrayay[ 4 ], aArrayay[ 5 ] )
-setcolor( aArrayay[ 6 ] )
+Function Box_Restore ( aArray )    // the array version of above
+restscreen( aArray[ 1 ], aArray[ 2 ], aArray[ 3 ], aArray[ 4 ], aArray[ 5 ] )
+setcolor( aArray[ 6 ] )
 
 return nil
 
@@ -1204,67 +1204,68 @@ return mchoice
 
 *
 
-function oddvars ( mindex, mval )
-static aArrayay
-default aArrayay to array( 30 )
-if mval != nil
- aArrayay[ mindex ] := mval
+function oddvars ( nIndex, nVal )
+static aOddVars
+default aOddVars to array( 30 )
+if nVal != nil
+ aOddVars[ nIndex ] := nVal
 
 endif
-return aArrayay[ mindex ]
+return aOddVars[ nIndex ]
 
 *
 
-function bvarget ( mrefresh )
+function bvarget ( lRefresh )
 local x
-default mrefresh to FALSE
+default lRefresh to FALSE
 
-if mrefresh
- mbvars := {}
-endif
+if lRefresh
+ mglobalVars := {}
 
-if len( mbvars ) = 0
+ endif
 
- if NetUse( "bvars", FALSE )                    // All of our 'B_' Variables
-  if bvars->( reccount() ) = 0
+if len( mglobalVars ) = 0
+
+ if NetUse( "globalVars", FALSE )                    // All of our 'B_' Variables
+  if globalVars->( reccount() ) = 0
    Add_rec()
   endif
-  for x := 1 to bvars->( fcount() )              // Loop for num fields
-   aadd( mbvars, bvars->( fieldget( x ) ) )
+  for x := 1 to globalVars->( fcount() )              // Loop for num fields
+   aadd( mglobalVars, globalVars->( fieldget( x ) ) )
   next                                           // And Again for more fields
-  bvars->( dbclosearea() )
+  globalVars->( dbclosearea() )
  endif
 
 endif
 
-return mbvars
+return mglobalVars
 
 *
 
-function bvarsave
+function globalVarsave
 local x
-if len( mbvars ) = 0
- Bvars()
+if len( mglobalVars ) = 0
+ globalVars()
 
 endif
-if NetUse( "bvars", EXCLUSIVE )                   // All of our 'B_' Variables
+if NetUse( "globalVars", EXCLUSIVE )                   // All of our 'B_' Variables
  for x := 1 to fcount()                           // Loop for num fields
-  fieldput( x, mbvars[ x ] )
+  fieldput( x, mglobalVars[ x ] )
 
  next                                             // And Again for more fields
- bvars->( dbclosearea() )
+ globalVars->( dbclosearea() )
 
 endif
 return nil
 
 *
 
-function bvars ( mindex, mval )
+function globalVars ( mindex, mval )
 if mval != nil
- mbvars[ mindex ] := mval
+ mglobalVars[ mindex ] := mval
 
 endif
-return mbvars[ mindex ]
+return mglobalVars[ mindex ]
 
 *
 
@@ -1762,7 +1763,7 @@ if !found()
 
    case key == K_DEL
     if Secure( X_DELFILES )
-     if mwork == 'DEBTOR'
+     if mwork
       Error( 'Cannot delete debtor from here... Use Pulsar', 12 )
      else
       if Isready( 'Ok to delete '+trim((mwork)->code)+' from file')

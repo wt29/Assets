@@ -147,8 +147,9 @@ Version History
    [; IF <vn> == NIL ; <vn> := <xn> ; END ]
   
 #define SITELEN 2                // Length of Site Code
+#define ASSET_CODE_LEN 10        // Just in case someone has a ridiculous field len
 #define OWNER_CODE_LEN 3         // Length of Owner Code
-#define ID_FIELD_LEN 10			 // Default Character ID Field Length
+#define ID_FIELD_LEN 10			   // Default Character ID Field Length
 
 #ifdef DEBUG
  #define LICENSEE "Debug"
@@ -162,6 +163,7 @@ Version History
 
 #endif
  
+// Global but ephemeral variables
 #define SYSPATH      1
 #define ENQ_STATUS   2
 #define IS_SPOOLING  3
@@ -180,6 +182,7 @@ Version History
 #define LASTCONT     16   // Last Contract Number
 #define AUDITPTR     17
 
+// Global Variables - Should map to the globalvars.dbf file
 #define B_ADDRESS1     1
 #define B_ADDRESS2     2
 #define B_SUBURB       3
@@ -193,6 +196,8 @@ Version History
 #define B_EDITOR       11   // Name of Editor to use for Print to screen
 #define B_COMPANY      12   // Company Name
 
+
+// Nodes Data - this makes it easy to call the right field in an array. Should map to the nodes.dbf file
 #define L_NODE           1
 #define L_PRINTER        2
 #define L_REPORT_NAME    3

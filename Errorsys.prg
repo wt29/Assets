@@ -6,8 +6,7 @@
 //      	Last change:  TG   29 Jan 2011    1:25 pm
       	
 */
-#include "winrent.ch"
-
+#include "assets.ch"
 #include "error.ch"
 #include "set.ch"
 
@@ -57,7 +56,6 @@ case oEr:genCode == EG_APPENDLOCK .and. oEr:canDefault
 endcase
 
 /* if error occurs within this error-handler, handle with DuplError */
-
 bOldErr:=ErrorBlock( {|oError| DuplError(oError)} )
 
 nLogFile:=-1
@@ -75,11 +73,6 @@ while cchoice != 'A'
   nerrlines:=6
  endif
  if oEr:genCode != EG_PRINT
-  if valtype( lvars( L_MAXROWS ) ) == nil
-   lvars( L_MAXROWS, 25 )
-
-  endif
-
   nActCount := 2
   while !empty( ProcName( nActCount ) ) .and. nErrLines <= 10
    if procLine( nActCount ) != 0
@@ -197,7 +190,7 @@ while cchoice != 'A'
 
  endif
  nIntense := set( _SET_INTENSITY , TRUE )
- @ nErrbot-1, 2 say 'Notify Bluegum Software with this error.'
+ @ nErrbot-1, 2 say 'Notify ' + DEVELOPER + ' with this error.'
  set( _SET_INTENSITY , nIntense )
 
  nIntense:=set( _SET_INTENSITY , TRUE )
@@ -208,7 +201,7 @@ while cchoice != 'A'
 
  endif
  aadd( cchoices, { 'Print', 'Print these details for sending to ' + DEVELOPER } )
- aadd( cchoices, { 'Abort', 'Exit from ' + SYSNAME } )
+ aadd( cchoices, { 'Quit', 'Exit from ' + SYSNAME } )
  nchoice := MenuGen( cchoices, 12, 62, 'Select' )
 
  set( _SET_INTENSITY , nIntense )
@@ -230,12 +223,12 @@ while cchoice != 'A'
   LP( oPrinter, SYSNAME + ' Build ' + BUILD_NO + ' Error Report   #' + Ns( Sysinc( 'Fax', 'I', 1 ) ) )
   LP( oPrinter, NOBIGCHARS )
   LP( oPrinter, BIGCHARS )
-  LP( oPrinter, 'From ' + BVars( B_COMPANY ))
+  LP( oPrinter, 'From ' + globalVars( B_COMPANY ))
   LP( oPrinter, NOBIGCHARS )
   LP( oPrinter, BIGCHARS )
-  LP( oPrinter, 'Time ' + time() + '  Ph.' + Bvars( B_PHONE ) )
+  LP( oPrinter, 'Time ' + time() + '  Ph.' + globalVars( B_PHONE ) )
   LP( oPrinter, NOBIGCHARS )
-//  LP( oPrinter, trim( version() ) + ' ' + Bvars( B_BRANCH ) )
+//  LP( oPrinter, trim( version() ) + ' ' + globalVars( B_BRANCH ) )
   LP( oPrinter, '' )
   for x := 1 to len( aErrors )
    LP( oPrinter, aErrors[ x ]  )
@@ -244,7 +237,7 @@ while cchoice != 'A'
 //  Printgraph( oPrinter )    // Adds the screen print to the mix
   LP( oPrinter, '' )
   LP( oPrinter, BIGCHARS )
-  LP( oPrinter, 'Please send me to Bluegum Software Email is ' + SUPPORT_EMAIL )
+  LP( oPrinter, 'Please send me to ' + DEVELOPER + '. Email address is ' + SUPPORT_EMAIL )
   LP( oPrinter, NOBIGCHARS )
   LP( oPrinter, BIGCHARS )
   LP( oPrinter, 'Fax number ' + SUPPORT_FAX )
@@ -256,7 +249,7 @@ while cchoice != 'A'
   LP( oPrinter, '' )
   LP( oPrinter, 'Contact  ' + replicate( chr( 95 ), 60 ) )
   LP( oPrinter, '' )
-  LP( oPrinter, '____________________ < Bluegum Software Office Use >___________________' )
+  LP( oPrinter, '____________________ < '+ DEVELOPER + ' Office Use >___________________' )
   LP( oPrinter, '' )
   LP( oPrinter, 'Date ____________     Copies To : ______________   Log Number __________' )
   LP( oPrinter, '' )

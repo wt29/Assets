@@ -5,7 +5,7 @@
       Last change:  TG   14 Mar 2011    2:40 pm
 */
 
-#include "winrent.ch"
+#include "assets.ch"
 
 #define PR_FLD_EXPR 1
 #define PR_FLD_NAME 2
@@ -222,7 +222,7 @@ local oPrinter, sOut
 local page_len:=0
 local top_mar:=0
 local bot_mar:=10
-// local pwidth := lvars( val( substr( Bvars( B_PRINTER1 ), 4, 1 ) ) + 7 )
+// local pwidth := lvars( val( substr( globalVars( B_PRINTER1 ), 4, 1 ) ) + 7 )
 local grp_code := { || &(group_by) }
 local sub_code := { || &(sub_group_by) }
 local grp_head := { || &(gh) }
@@ -686,7 +686,7 @@ endif // totals
 dbclearfilter()
 if toScreen
  oShell := CreateObject( "Wscript.Shell" )
- oShell:Exec( bvars( B_EDITOR ) + ' ' + cFile )
+ oShell:Exec( globalVars( B_EDITOR ) + ' ' + cFile )
 
 else
  oPrinter:endDoc()
@@ -719,7 +719,7 @@ nTotWidth = max( nTotWidth, page_width )
 if report_name != nil
  if !toScreen
   oPrinter:NewLine()
-  oPrinter:TextOut( BVars( B_COMPANY ) )
+  oPrinter:TextOut( globalVars( B_COMPANY ) )
   oprinter:setpos( (oPrinter:maxcol - len(a) ) * oPrinter:CharWidth )
   oPrinter:TextOut( a )
   oPrinter:NewLine()
@@ -728,7 +728,7 @@ if report_name != nil
   oPrinter:TextOut( b )
 
  else
-  oPrinter:Write( BVars( B_COMPANY ) + space( nTotWidth - len( BVars( B_COMPANY ) ) - len(a) ) + a + CRLF )
+  oPrinter:Write( globalVars( B_COMPANY ) + space( nTotWidth - len( globalVars( B_COMPANY ) ) - len(a) ) + a + CRLF )
   oPrinter:Write( report_name + space( nTotWidth - len( report_name ) - len(b) ) + b + CRLF )
 
  endif

@@ -21,10 +21,10 @@ local cScr
 
 if NetUse( "location" )
  if NetUse( "owner" )
-  if NetUse( "Assets" )
-   Assets->( ordsetfocus( 'AssetId' ) )
-   set relation to Assets->ownerId into owner,;
-                to Assets->AssetId into location
+  if NetUse( "assets" )
+   assets->( ordsetfocus( 'assetid' ) )
+   set relation to assets->ownerId into owner,;
+                to assets->assetId into location
    ok := TRUE
   endif
  endif
@@ -37,13 +37,13 @@ while ok
 
  aArray := {}
  aadd( aArray, { 'Exit', 'Return to main menu' } )
- aadd( aArray, { 'Add', 'Add new Asset Assets' } )
+ aadd( aArray, { 'Add', 'Add new Asset' } )
  aadd( aArray, { 'Change', 'Change Asset details' } )
  aadd( aArray, { 'Location', 'Change location of Asset' } )
  aadd( aArray, { 'Owner', 'Change owner details for Asset' } )
- aadd( aArray, { 'Delete', 'Delete Asset Assets from file' } )
+ aadd( aArray, { 'Delete', 'Delete Assets from file' } )
  // aadd( aArray, { 'History', 'Modify Stock Histories' } )
- choice := MenuGen( aArray, 04, 13, 'Asset' )
+ choice := MenuGen( aArray, 04, 13, 'File' )
 
  do case
  case choice = 2 .and. Secure( X_ADDFILES )
@@ -53,7 +53,7 @@ while ok
    sCode = space(10)
 
    Box_Save( 02, 08, 12, 72 )
-   Heading( 'Add new Asset Asset' )
+   Heading( 'Add new Asset' )
    sCode := space( 10 )
    @ 3,10 say 'Enter Asset ID to add' get sCode pict '@!'
    read
@@ -61,13 +61,13 @@ while ok
     loopval := FALSE
 
    else
-    if Assets->( dbseek( sCode ) )
+    if assets->( dbseek( sCode ) )
      Highlight( 07, 10, 'Description', Assets->desc )
      Highlight( 09, 10, '     Serial', Assets->serial )
      Error('Asset Code already on file',12)
 
     else
-     sOwnerID := Bvars( B_DEF_OWNER )
+     sOwnerID := globalVars( B_DEF_OWNER )
      while TRUE
       @ 7,10 say 'Enter owner code' get sOwnerID pict '@!'
       read
@@ -80,7 +80,7 @@ while ok
 
       else
        Add_rec( 'Assets' )
-       Assets->AssetID := sCode
+       Assets->assetId := sCode
        Assets->owner_code := sOwnerID
        AssetGet()
        if !updated()
@@ -231,7 +231,7 @@ while ok
 #endif
 
        stkhist->( dbseek( sCode ) )
-       while stkhist->AssetID = sCode .and. !stkhist->( eof() )
+       while stkhist->id = sCode .and. !stkhist->( eof() )
         Rec_lock( 'stkhist' )
         stkhist->( dbdelete() )
         stkhist->( dbrunlock() )
@@ -262,7 +262,7 @@ while ok
     else
      cls
      Heading( 'Asset File Inquiry' )
-     Highlight( 03, 01, '   Asset code', Assets->AssetID )
+     Highlight( 03, 01, '   Asset code', Assets->id )
      Highlight( 05, 01, '    Model No', Assets->model )
      Highlight( 06, 01, ' Description', Assets->desc )
      Highlight( 07, 01, '   Serial No', Assets->serial )
@@ -278,7 +278,7 @@ while ok
      Highlight( 08, 50, '      Daily', Ns( Assets->d_rent ) )
 
      Add_rec( 'stkhist' )
-     stkhist->AssetID := Assets->AssetID
+     stkhist->id := Assets->id
      @ 14,01 say '      Date' get stkhist->returned
      @ 15,01 say ' Invoice #' get stkhist->name
      @ 16,01 say '     Fault' get stkhist->address1
@@ -313,7 +313,7 @@ local okaf7 := setkey( K_ALT_F10, { || AssetContEdit() } )
 local mscr := Box_Save(), cAssetstatus := Assets->status
 cls
 Heading( 'Asset Editing Screen' )
-Highlight( 02, 04, 'Asset code', Assets->AssetID )
+Highlight( 02, 04, 'Asset code', Assets->id )
 @ 04,01 say '    Model no' get Assets->model pict '@!'
 @ 05,01 say ' Description' get Assets->desc pict '@!'
 @ 06,01 say '   Serial no' get Assets->serial pict '@!'
@@ -390,14 +390,14 @@ setkey( K_F4, bKF4 )
 
 #ifdef RENTACENTRE
 if cAssetstatus != Assets->Status
- Audit( 0, MACHINE_MOVEMENT, 0, St_Status( Assets->status ), Assets->AssetID )
+ Audit( 0, MACHINE_MOVEMENT, 0, St_Status( Assets->status ), Assets->id )
 endif
 if updated()
- Audit( Assets->con_no, Asset_FILE_CHANGED, 0, '', Assets->AssetID )
+ Audit( Assets->con_no, Asset_FILE_CHANGED, 0, '', Assets->id )
 endif
 #endif
 setkey( K_ALT_F10, okaf10 )
-Oddvars( LASTAsset, Assets->AssetID )
+Oddvars( LASTAsset, Assets->id )
 Box_Restore( mscr )
 return
 
@@ -419,25 +419,19 @@ return nil
 procedure assetSay ( mfile )
 local mscr := Box_Save()
 local owner_not_open := ( select( 'owner' ) = 0 )
+local nCurr := 0, nYTD := 0, nAccum := 0
 
 default mfile to 'Assets'
 cls
 
 Heading( 'Asset Details' )
-Highlight( 02, 01, '    Asset Code', ( mfile )->AssetID )
+Highlight( 02, 01, '   Asset Code', ( mfile )->id )
 Highlight( 04, 01, '     Model no', ( mfile )->model )
 Highlight( 05, 01, '  Description', ( mfile )->desc )
 Highlight( 06, 01, '    Serial no', ( mfile )->serial )
 Highlight( 07, 01, ' Product code', ( mfile )->prod_code )
-#ifdef MEDI
-Highlight( 08, 01, '    MYOB Code', Trim( ( mfile )->MYOBCode ) + ' ' + lookitup( 'MyobCode', (mfile)->MyobCode ) )
-#endif
 Highlight( 09, 01, '        Owner', LookItup( "owner" , ( mfile )->owner_code ) )
-#ifdef ARGYLE
-Highlight( 10, 01, '       Status', LookItUp( "status", ( mfile )->status ) )
-#else
 Highlight( 10, 01, '       Status', st_status( ( mfile )->status ) )
-#endif
 Highlight( 11, 01, '  Contract no', Ns( ( mfile )->con_no ) )
 Highlight( 01, 54, 'Rentals' , '' )
 Highlight( 02, 54, 'ÄÄÄÄÄÄÄ' , '' )
@@ -465,9 +459,9 @@ Highlight( 14, 40, 'Lease payments total', Ns( ( mfile )->pay_tot ) )
 Highlight( 15, 40, '   Rule of 78 payout', Ns( Rule_78( ( mfile )->cost, ( mfile )->lease_term, ;
           ( mfile )->pay_made, ( mfile )->month_pay ) ) )
 
-#ifdef AssetS
- store 0 TO mcurr,mytd,maccum
- mdate := bdate
+
+#ifdef TODO
+mdate := bdate
  Fadepr( mdate, mcurr, mytd, maccum )
 
 //-----* Calculate month and year that depreciation ends
@@ -485,9 +479,7 @@ Highlight( 15, 40, '   Rule of 78 payout', Ns( Rule_78( ( mfile )->cost, ( mfile
  Highlight( 20, 34, "              Year to Date", Ns( mytd, 10, 2 ) )
  Highlight( 21, 34, "  Accumulated Depreciation", Ns( maccum, 10, 2 ) )
  Highlight( 22, 34, "     Undepreciated Balance", Ns( mremain, 10, 2 ) )
-
 #endif
-
 Error('')
 
 if lastkey() = K_F12
@@ -508,8 +500,6 @@ if owner_not_open .and. ( select( 'owner' ) != 0 )
 
 endif
 
-oddvars( LASTAsset, (mfile)->AssetID )
+oddvars( LASTAsset, (mfile)->id )
 
 return
-
-

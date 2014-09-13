@@ -30,13 +30,7 @@ local oPrinter
 local lMainCoord := WVW_SetMainCoord( .t. )
 WVW_SetCodePage(,255)
 WVW_SetFont( , "Lucida Console", 28, -12 )
-
-//WvW_SBCreate( 0 )    // 0 is the first window created
-//WvW_SBSetText( 0, 0 , "System Info" )
-//WvW_SBAddPart( 0, REPLICATE( CHR(0), 3 ) )     // Section 2
-//WvW_SBAddPart( 0, REPLICATE( CHR(0), 3 ) )    // Section 3
-//WvW_SBAddPart( 0, REPLICATE( CHR(0), 4 ) )   // Section 4
-         
+        
 parameter sCmdParams
 
 set scoreboard off
@@ -71,7 +65,7 @@ if type( "sCmdParams" ) != 'U'
  endif
 
 else
- m->sCmdParams = ''
+m->sCmdParams = ''
 
 endif
 
@@ -86,25 +80,17 @@ if len( directory( Oddvars( SYSPATH ) + '*.dbf' ) ) = 0
 
 endif 
 
-// These routines will allow you to patch either if a new dbf (table) is required or if a new field is required for a dbf
-
+// Oddvars are temporary local variables
 Oddvars( ENQ_STATUS, TRUE )
 Oddvars( IS_SPOOLING, FALSE )
 Oddvars( TRAN_AUDIT, FALSE )
-Oddvars( TEMPFILE, '_' + padl( sysinc( 'fileno', 'I', 1 ), 7 ,'0' ) )
+Oddvars( TEMPFILE, '_' + padl( SysInc( 'fileno', 'I', 1 ), 7 ,'0' ) )  // Unique file name
 Oddvars( OPERNAME, 'XX' )
 
 LVarGet()
-BvarGet( TRUE )
+BVarGet( TRUE )
 
-// if empty( Bvars( B_SYSDATE ) )
-// Bvars( B_SYSDATE, date() )
-
-// endif
-
-// Oddvars( SYSDATE, Bvars( B_SYSDATE ) )
-
-BvarSave()
+globalVarSave()
 
 sFile := Oddvars( SYSPATH ) + 'assets' + ordbagext()
 if !file( sFile )
@@ -113,13 +99,13 @@ if !file( sFile )
 endif
 
 cls
-mlen := max( 15, ( 20 + len( trim( BVars( B_COMPANY ) ) ) ) / 2 )
+mlen := max( 15, ( 20 + len( trim( globalVars( B_COMPANY ) ) ) ) / 2 )
 
 Heading('*** Welcome to ' + SYSNAME + ' ***')
 aBox := Box_Save( 06, 38-mlen, 12, 41+mlen, C_CYAN )
 Center( 07, 'Copyright Bluegum Software' )
 Center( 08, SUPPORT_PHONE )
-Center( 09, 'Licensed to -=< ' + trim( BVars( B_COMPANY ) ) + ' >=-' )
+Center( 09, 'Licensed to -=< ' + trim( globalVars( B_COMPANY ) ) + ' >=-' )
 Center( 10, 'Build Version V' + BUILD_NO )
 // Center( 11, 'Current System Date is ' + dtoc( Oddvars( SYSDATE ) ) )
 
@@ -134,7 +120,7 @@ Error( "", 21 )
 #endif
 
 #ifdef EVALUATION
-if Bvars( B_SYSDATE ) >= ctod( EVALEXP )
+if globalVars( B_SYSDATE ) >= ctod( EVALEXP )
  Error( 'Evaluation Period Expired', 12, , 'Contact Bluegum Software ' + BLUEGUM_PHONE )
  cls
  quit
@@ -175,10 +161,10 @@ while TRUE
  @ 0,0 clear to maxrow(), maxcol()
  Syscolor( C_NORMAL )
 
- Bvarget( TRUE ) // Refresh the Bvars Array in case another terminal has update EOD etc
+ Bvarget( TRUE ) // Refresh the globalVars Array in case another terminal has update EOD etc
 
  Oddvars( ENQ_STATUS, TRUE )
- // Oddvars( SYSDATE, Bvars( B_SYSDATE ) )
+ // Oddvars( SYSDATE, globalVars( B_SYSDATE ) )
 
  Heading( 'Main Menu' )
  set message to 24 center
@@ -188,7 +174,6 @@ while TRUE
  nMMChoice := 1
  @ 03, 01 prompt ' Enquiry ' message line_clear( 24 ) + 'Enquiries on Assets'
  @ 03, 12 prompt '  File   ' message line_clear( 24 ) + 'Maintain your Asset File'
- @ 03, 24 prompt ' Reports ' message line_clear( 24 ) + 'Reports - You gotta have them'
  @ 03, 36 prompt 'Stocktake' message line_clear( 24 ) + 'Do an Asset Stocktake'
  @ 03, 60 prompt 'Utilities' message line_clear( 24 ) + 'Housekeeping'
  @ 03, 71 prompt '  Quit  ' message line_clear( 24 ) + 'Exit from ' + SYSNAME
@@ -219,18 +204,11 @@ while TRUE
    endif
 
   case nMMChoice = 2 .and. Secure( X_FILE )
-   MainAsset()
- /*  
    Heading('File Maintenance')
    aMenu := {}
    aadd( aMenu, { 'Main', 'Return to top line options' } )
-   aadd( aMenu, { 'Contract', 'Contract file maintenance', { || MainCont() } } )
-   aadd( aMenu, { 'Item', 'Add/change/delete items', { || MainItem() } } )
+   aadd( aMenu, { 'Assets', 'Contract file maintenance', { || MainAsset() } } )
    aadd( aMenu, { 'Owner', 'Modify owner details', { || MainOwne() } } )
-#ifdef MULTI_SITE
-   aadd( aMenu, { 'Sites', 'Modify Site details', { || MainSite() } } )
-#endif
-   aadd( aMenu, { 'Trucks', 'Modify Truck File', { || MainTruck( nSelRow ) } } )
    nMenuChoice := MenuGen( aMenu, 1, 12, 'File', , , ,@nSelRow )
 
    if nMenuChoice < 2
@@ -240,120 +218,15 @@ while TRUE
     Eval( aMenu[ nMenuChoice, 3 ] )
 
    endif
-
-  case nMMChoice = 3 .and. Secure( X_REPORT )
-   Reports()
-   aMenu := {}
-   Heading( 'Transaction menu' )
-   aadd( aMenu, { 'Main', 'Return to top line options' } )
-   aadd( aMenu, { 'Payments', 'Enter contract payments', { || Trpay() } } )
-   aadd( aMenu, { 'Debit', 'Enter special contract debit', { || TrDebit() } } )
-   aadd( aMenu, { 'Credit', 'Enter contract credits', { || TrCredit() } } )
-   aadd( aMenu, { 'Bond', 'Receive bond payments', { || TrBond() } } )
-   aadd( aMenu, { 'Return', 'Return bond payments', { || TrRet() } } )
-   aadd( aMenu, { 'Delivery', 'Add Delivery fee to Contracts', { || TrDel() } } )
-   nMenuChoice := MenuGen( aMenu, 01, 23, 'Transaction' )
-
-#ifndef RENTACENTRE
-   if nMenuChoice > 1 .and. !Oddvars( TRAN_AUDIT )
-
- #ifndef NOAUDIT
-
-    if Isready( 'Do you require an audit trail ?' )
-     Oddvars( AUDITPTR, Printcheck('Audit Run') ) // Creates a new printer object
-     Oddvars( TRAN_AUDIT, TRUE )
-     Oddvars( BATCH_TOT, 0 )
-     Tran_audit( 0, TRUE ) // Tells it a new run is being setup
-
-    endif
-
- #endif
-
-   endif
-
-#else
-
-   Oddvars( TRAN_AUDIT, FALSE )
-
-#endif
-
-   if nMenuChoice > 1
-    Eval( aMenu[ nMenuChoice, 3 ] )
-
-   else
-
-#ifndef NOAUDIT
-
-    if Oddvars( TRAN_AUDIT ) 
-//     oPrinter := Printcheck('Audit Batch Totals')
-     oPrinter := Oddvars( AUDITPTR ) // Should get a printer object created before
-     oPrinter:newLine()
-     oPrinter:newLine()
-     oPrinter:SetPos( 10 * oPrinter:CharWidth() )
-     oPrinter:TextOut( 'Batch Total ' + Ns( Oddvars( BATCH_TOT ), 8, 2 ) )
-     oPrinter:EndDoc()
-     oPrinter:Destroy()
-
-     Oddvars( TRAN_AUDIT, FALSE )
-
-    endif
-
-#endif
-
-    exit
-
-   endif
-*/
-  case nMMChoice = 4 .and. Secure( X_STOCKTAKE )
+  case nMMChoice = 3 .and. Secure( X_STOCKTAKE )
    UtilStock()
-/*   
-   Heading( 'Reports Menu' )
-   aMenu := {}
-   aadd( aMenu, { 'Exit', 'Return to Main Menu' } )
-   aadd( aMenu, { 'Contract', 'Contract related Reports', { || ConPrt() } } )
-   aadd( aMenu, { 'Item', 'Bailment list, Item lists', { || ItemRep() } } )
-   aadd( aMenu, { 'Transaction', 'Transaction, GST Reports', { || TranRep() } } )
-   aadd( aMenu, { 'Owner', 'List of owners on file', { || OwnerRep() } } )
-   aadd( aMenu, { 'Miscellaneous', 'Statements/collection/arrears', { || Miscrep() } } )
-   nMenuChoice := MenuGen( aMenu, 1, 35, 'Reports' )
-   if nMenuChoice < 2
-    exit
-
-   else
-    Eval( aMenu[ nMenuChoice, 3 ] )
-
-   endif
-*/
-/*
-  case nMMChoice = 5 .and. Secure( X_EOD )
-   Heading( 'Period Processing' )
-   aMenu := {}
-   aadd( aMenu, { 'Quit', 'Return to Main Menu' } )
-   aadd( aMenu, { 'End of Day', 'Rollover Contracts', { || Eod() } } )
-   aadd( aMenu, { 'Monthly', 'Clear old Data', { || Eom() } } )
-   aadd( aMenu, { 'Year', 'Clear Year to Date figures', { || Eoy() } } )
-   aadd( aMenu, { 'Revenue', 'Calculate Monthly Revenue', { || EomRepTot() } } )
-   aadd( aMenu, { 'Prod Code', 'Calculate Monthly by Product Code', { || EomRepProd() } } )
-   nMenuChoice := MenuGen( aMenu, 1, 47, 'Period' )
-
-   if nMenuChoice < 2
-    exit
-
-   else
-    Eval( aMenu[ nMenuChoice, 3 ] )
-
-   endif
-*/
-  case nMMChoice = 6 .and. Secure( X_UTILITY )
+  case nMMChoice = 4 .and. Secure( X_UTILITY )
    Heading('Utility Menu')
    aMenu := {}
    aadd( aMenu, { 'Main', 'Return to top line options' } )
    aadd( aMenu, { 'Details', 'Change user details', { || Utilsppa() } } )
    aadd( aMenu, { 'Pack', 'File tidy up procedure', { || Utilpack() } } )
    aadd( aMenu, { 'Index', 'Rebuild Indexes', { || Utilpack( ,TRUE ) } } )
-//   aadd( aMenu, { 'Backup', 'Backup the Rentals System', { || Utilback( 6, 59 ) } } )
-
-//   aadd( aMenu, { 'Stocktake', 'Perform Stocktake', { || Utilstoc() } } )
    aadd( aMenu, { 'Barcodes', 'Print Barcodes', { || CodePrint() } } )
 
    okaf1 := setkey( K_ALT_F1, { || MaintLaunch() } )
@@ -370,7 +243,7 @@ while TRUE
 
    endif
 
-  case nMMChoice = 7 .or. nMMChoice = 0
+  case nMMChoice = 5 .or. nMMChoice = 0
    Appquit( )
    exit
 
@@ -392,7 +265,7 @@ function MaintLaunch
 local aMenu:={}, nMenuChoice, mscr := Box_Save()
 aadd( aMenu, { ' Audit Browse', 'Browse the Audit trail', { || BrowSystem() } } )
 aadd( aMenu, { 'Check local file structures', 'Ensure field lengths etc are OK', { || Check_new_dbf() } } )
-aadd( aMenu, { 'Check Email Functionality', 'Send a test email', { || SMTP_Send( TRUE ) } } )
+// aadd( aMenu, { 'Check Email Functionality', 'Send a test email', { || SMTP_Send( TRUE ) } } )
 aadd( aMenu, { 'Update file schema', 'Update all files to latest schema', { || FixSchema( ) } } )
 
 nMenuChoice := MenuGen( aMenu, 10, 30, 'Maint Functs' )
