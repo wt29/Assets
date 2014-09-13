@@ -29,6 +29,7 @@ local oPrinter
 
 local lMainCoord := WVW_SetMainCoord( .t. )
 WVW_SetCodePage(,255)
+WVW_SetFont( , "Lucida Console", 28, -12 )
         
 parameter sCmdParams
 
@@ -64,18 +65,17 @@ if type( "sCmdParams" ) != 'U'
  endif
 
 else
- m->sCmdParams = ''
+m->sCmdParams = ''
 
 endif
-
-// MessageBox()
 
 Oddvars( SYSPATH, m->sCmdParams )
 
 set path to ( Oddvars( SYSPATH ) )
 
+Setupdirs()
+
 if len( directory( Oddvars( SYSPATH ) + '*.dbf' ) ) = 0
- Setupdirs()
  SetupDbfs()         // a completely new program and exit after creation
 
 endif 
@@ -89,6 +89,7 @@ Oddvars( OPERNAME, 'XX' )
 
 LVarGet()
 BVarGet( TRUE )
+
 globalVarSave()
 
 sFile := Oddvars( SYSPATH ) + 'assets' + ordbagext()
@@ -99,6 +100,7 @@ endif
 
 cls
 mlen := max( 15, ( 20 + len( trim( globalVars( B_COMPANY ) ) ) ) / 2 )
+
 Heading('*** Welcome to ' + SYSNAME + ' ***')
 aBox := Box_Save( 06, 38-mlen, 12, 41+mlen, C_CYAN )
 Center( 07, 'Copyright Bluegum Software' )
@@ -106,6 +108,7 @@ Center( 08, SUPPORT_PHONE )
 Center( 09, 'Licensed to -=< ' + trim( globalVars( B_COMPANY ) ) + ' >=-' )
 Center( 10, 'Build Version V' + BUILD_NO )
 // Center( 11, 'Current System Date is ' + dtoc( Oddvars( SYSDATE ) ) )
+
 
 #ifdef SECURITY
 Login( FALSE )    // Not allowed to add an operator here
@@ -118,7 +121,7 @@ Error( "", 21 )
 
 #ifdef EVALUATION
 if globalVars( B_SYSDATE ) >= ctod( EVALEXP )
- Error( 'Evaluation Period Expired', 12, , DEVELOPER + ' ' + BLUEGUM_PHONE )
+ Error( 'Evaluation Period Expired', 12, , 'Contact Bluegum Software ' + BLUEGUM_PHONE )
  cls
  quit
 endif
@@ -145,7 +148,6 @@ Oddvars( LASTITEM, '0' )  // Init this item otherwise it crashes - it expects a 
 Oddvars( LASTCONT, '0' )
 
 box_restore( aBox )
-// WVW_SetFont( , "Lucida Console", 28, -12 )
 
 sNoColor := SysColor( C_NORMAL )
 
@@ -185,14 +187,11 @@ while TRUE
 
   do case
   case nMMChoice = 1 .and. Secure( X_ENQUIRE )
-   EnqAsset()
-   exit
-/*  
    Heading( 'Enquiry menu' )
    aMenu := {}
    aadd( aMenu, { 'Exit', 'Return to main menu' } )
    aadd( aMenu, { 'Asset #', 'EnquireContract enquiries', { || EnqCont() } } )
-   aadd( aMenu, { 'Location', 'Hire stock enquiry', { || EnqAsset() } } )
+   aadd( aMenu, { 'Location', 'Hire stock enquiry', { || EnqItems() } } )
    aadd( aMenu, { 'Owner', 'Owner file enquiry', { || EnqOwner() } } )
    nMenuChoice := MenuGen( aMenu, 01, 01, 'Enquire' )
 
@@ -203,7 +202,6 @@ while TRUE
     Eval( aMenu[ nMenuChoice, 3 ] )
 
    endif
-*/
 
   case nMMChoice = 2 .and. Secure( X_FILE )
    Heading('File Maintenance')
@@ -222,8 +220,7 @@ while TRUE
    endif
   case nMMChoice = 3 .and. Secure( X_STOCKTAKE )
    UtilStock()
-
-   case nMMChoice = 4 .and. Secure( X_UTILITY )
+  case nMMChoice = 4 .and. Secure( X_UTILITY )
    Heading('Utility Menu')
    aMenu := {}
    aadd( aMenu, { 'Main', 'Return to top line options' } )

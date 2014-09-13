@@ -2,11 +2,9 @@
 
   Rentals - Bluegum Software
 
-  Module utilpack - Pack Files
-
-  Last change:  TG    1 May 2008   10:50 pm
-
-      Last change:  TG   26 Jan 2012    7:34 pm
+  Module Utilpack - Pack Files
+  
+  Last change:  TG   26 Jan 2012    7:34 pm
 */
 
 #include "assets.ch"
@@ -35,13 +33,12 @@ if goforit .or. Isready( )
  cls
  Heading( 'File ' + packindx + 'ing in Progress' )
  @ 1, 0 say ''
-
  
- if NetUse("assets",EXCLUSIVE,10)
+ if NetUse( "assets", EXCLUSIVE, 10 )
   PackStat( packindx, 'Assets file')
 
   if !file( Oddvars( SYSPATH ) + 'assets' + indexext() ) .or. must_index
-   indx( 'assetid', 'assetid' )
+   indx( 'code', 'code' )
    indx( 'serial', 'serial' )
    indx( 'model', 'model' )
 
@@ -52,12 +49,11 @@ if goforit .or. Isready( )
 
  endif
 
-
  if NetUse( "owner", EXCLUSIVE, 10 )
   PackStat( packindx, 'Owner file' )
 
   if !file( Oddvars( SYSPATH ) + 'owner' + indexext() ) .or. must_index
-   indx( 'id', 'id' )
+   indx( 'code', 'code' )
 
   else
    pack
@@ -69,7 +65,7 @@ if goforit .or. Isready( )
   PackStat( packindx, 'Product Code file' )
 
   if !file( Oddvars( SYSPATH ) + 'prodcode' + indexext() ) .or. must_index
-   indx( 'id', 'id' )
+   indx( 'code', 'code' )
 
   else
    pack
@@ -81,7 +77,20 @@ if goforit .or. Isready( )
   PackStat( packindx, 'Operator file' )
 
   if !file( Oddvars( SYSPATH ) + 'operator' + indexext() ) .or. must_index
-   indx( 'id', 'id' )
+   indx( 'code', 'code' )
+
+  else
+   pack
+
+  endif 
+
+ endif
+ 
+ if NetUse( "status", EXCLUSIVE, 10 )
+  PackStat( packindx, 'Status file' )
+
+  if !file( Oddvars( SYSPATH ) + 'status' + indexext() ) .or. must_index
+   indx( 'code', 'code' )
 
   else
    pack

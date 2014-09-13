@@ -282,7 +282,7 @@ while TRUE
                       hirer->surname ) ) ) ), len( mident ) )  ) }, mident ) }
 
 #endif
-    enqobj:addColumn(  tbcolumnnew('Contract', { || hirer->con_no } ) )
+    enqobj:addColumn( tbcolumnnew( 'Contract', { || hirer->con_no } ) )
     enqobj:addcolumn( tbcolumnNew( 'S', { || StatusLookup( hirer->con_no ) } ) )
     enqobj:addcolumn( tbcolumnNew( 'Surname', { || hirer->surname } ) )
     enqobj:addcolumn( tbcolumnNew( 'Address', { || hirer->add1 } ) )
@@ -374,6 +374,7 @@ return lReturn
 
 *
 
+/*
 function perdesc ( pcode )
 local lReturn := 'Unknown'
 do case
@@ -518,7 +519,7 @@ otherwise
 endcase
 return mdesc
 
-*
+*/
 
 procedure center ( p_line, p_text )
 p_text = trim( p_text )
@@ -530,7 +531,7 @@ return
 
 function error ( ertext, errow, erwait, extrainfo )
 local mscr, ercol, er_bott, er_right, ocursor:=setcursor(0), nKey
-tone( 250, 5 )
+// tone( 250, 5 )
 ertext := trim( ertext )
 ercol := min(24,int((79-( max( len( ertext ),if( extrainfo != nil, len( extrainfo ), 0 ) ) ) )/2)-2)
 if errow = nil
@@ -750,7 +751,7 @@ if NetUse( "items", SHARED, 10, 'itenq'  )
    if !Navigate( enqobj, mkey )
 
     if mkey == K_ENTER .or. mkey == K_LDBLCLK
-     assetSay( 'itenq' )  // Pass the item file alias to allow assetSay to work correctly
+     assetForm( FALSE, 'itenq' )  // Pass the item file alias to allow assetSay to work correctly
 
     endif
 
@@ -872,7 +873,7 @@ set( _SET_SOFTSEEK, msseek )
 return nil
 
 *
-
+/*
 procedure tran_disp ( mContractNum )
 local tr_row := 3, mcount, ocolor := setcolor()
 select tran
@@ -909,7 +910,7 @@ while mContractNum = tran->con_no .and. tr_row < 20 .and. !tran->( eof() )
 
 enddo
 return
-
+*/
 *
 
 function zero( num1,num2 )

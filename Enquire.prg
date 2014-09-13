@@ -1,9 +1,7 @@
 /*
 
- Rentals system - Bluegum Software
+ Assets System - Bluegum Software
  Module Enquire - General Enquiries
-
- Last change:  TG   14 Mar 2011   11:03 am
 
 */
  
@@ -12,158 +10,83 @@
 #define LEFT_ARROW chr( 27 )
 #define RIGHT_ARROW chr( 26 )
 
-Procedure Enqcont
-local ok := FALSE, pos_count, oldscr := Box_Save()
+Procedure EnqAsset
 
-local mContractNum
-local getlist := {}
-local mcomm1
-local mcomm2
-local mkey
-local hir_rec
-local mhlparr
+local mscr := Box_Save()
+local mkey, enqobj, loopval:=FALSE
+local getlist:={}, sCode
 
-if NetUse( "arrears" )
- if NetUse( "tran" )
-  if NetUse( "owner"  )
-   if NetUse( "items" )
-    items->( ordsetfocus( 'contract' ) )
-    set relation to items->owner_code into owner
-    if NetUse( "hirer" )
-     if NetUse( "master" )
-      set relation to master->con_no into items,;
-                   to master->con_no into hirer
-      ok := TRUE
-     endif
-    endif
-   endif
+if NetUse( "location" )
+ if NetUse( "owner" )
+  if NetUse( "assets" )
+   assets->( ordsetfocus( 'code' ) )
+   set relation to assets->ownerId into owner,;
+                to assets->code into location
+   loopval := TRUE
   endif
  endif
 endif
 
-while ok
 
- Oddvars( ENQ_STATUS, FALSE )
+Heading( 'Enquire on Asset' )
 
- if !Con_find()
-  Oddvars( ENQ_STATUS, TRUE )
-  dbcloseall()
-  return
+while loopval
+ sCode = space(10)
+ Box_Save( 02, 08, 4, 72 )
+  @ 03, 10 say 'Enter Asset No or / for Description to Enquire' get sCode pict '@!'
+ read
+ if !updated()
+  loopval := FALSE
+
+ else
+  assets->( dbseek( sCode ) )
+  if assets->( eof() )
+   Error( 'No assets found', 12 )
+
+  else 
+   Heading('Asset Inquiry' )
+   select assets
+   enqobj:=tbrowsedb( 01, 00, 24, 79 )
+   enqobj:colorspec := if( iscolor(), TB_COLOR, setcolor() )
+   enqobj:HeadSep := HEADSEP
+   enqobj:ColSep := COLSEP
+   enqobj:goTopBlock := { || jumptotop( sCode ) }
+   enqobj:goBottomBlock := { || jumptobott( sCode ) }
+   enqobj:skipBlock:={ | SkipCnt | AwSkipIt( SkipCnt, { || assets->code },sCode )}
+   enqobj:addcolumn( tbcolumnNew( 'Asset Code', { || assets->code } ) )
+   enqobj:addcolumn( tbcolumnNew( 'Description', { || left( assets->desc, 30 ) } ) )
+   enqobj:addcolumn( tbcolumnNew( 'Model', { || left( assets->model, 20 ) } ) )
+   enqobj:addcolumn( tbcolumnNew( 'Serial', { || assets->serial } ) )
+   enqobj:freeze := 1
+   mkey := 0
+
+   while mkey != K_ESC .and. mkey != K_RDBLCLK
+    enqobj:forcestable()
+    mkey := inkey(0)
+
+    if !Navigate( enqobj, mkey )
+     if mkey == K_ENTER .or. mkey == K_LDBLCLK
+      assetForm( TRUE )
+
+     endif 
+
+    endif
+
+   enddo
+
+  endif
 
  endif
 
- mContractNum := Oddvars( CONTRACT )
+enddo 
 
- master->( dbseek( mContractNum ) )
-
- mcomm1 := master->comments1
- mcomm2 := master->comments2
- select hirer
- pos_count := 1
-
- while !hirer->( eof() ) .and. mContractNum = hirer->con_no
-
-  ContractEnq( mContractNum )
-
-  Center( 24, 'Use ' + LEFT_ARROW + ' + ' + RIGHT_ARROW + ' keys to scroll <C> to change ';
-              + 'comment or <Esc> to exit. <F1> for Help' )
-
-  mkey := inkey( 0 )
-
-  do case
-  case mkey == K_F12
-   Print_Screen()
-     
-  case mkey = K_LEFT
-   if pos_count < 2
-    Error( 'Attempt to skip past first hirer', 12 )
-   else
-    hirer->( dbskip( -1 ) )
-    pos_count--
-   endif
-
-  case mkey = K_RIGHT
-   hirer->( dbskip() )
-   if hirer->con_no != mContractNum .or. hirer->( eof() )
-    Error( 'Attempt to skip past last hirer', 12 )
-    hirer->( dbskip( -1 ) )
-   else
-    pos_count++
-   endif
-
-  case mkey == K_F1
-   mhlparr := {}
-   aadd( mhlparr, { 'Esc', 'Escape from this Screen' } )
-   aadd( mhlparr, { 'F4', 'Edit extended Comments' } )
-   aadd( mhlparr, { 'F5', 'View Items' } )
-   aadd( mhlparr, { 'F6', 'View Transactions' } )
-   aadd( mhlparr, { 'F7', 'View Arrears Details' } )
-   #ifdef CREDIT_CARD
-   aadd( mhlparr, { 'F8', 'Credit Card Details' } )
-   #endif
-   #ifdef RENTACENTRE
-   aadd( mhlparr, { 'F9', 'Adjust pickup date' } )
-   #endif
-   #ifdef BYRNES
-   aadd( mhlparr, { 'F10', 'Change End Date' } )
-   #endif
-   aadd( mhlparr, { 'C', 'Change Quick Comment' } )
-   aadd( mhlparr, { 'F11', 'Change Status' } )
-
-   aadd( mhlparr, { chr(17)+'+'+chr(16), 'View other Hirers' } )
-   Build_help( mhlparr )
-     
-  case mkey = 99 .or. mkey = 67
-   hir_rec := hirer->( recno() )
-   if master->( dbseek( mContractNum ) )
-    Rec_lock( 'master' )
-    @ 22, 10 get master->comments1
-    @ 23, 10 get master->comments2
-    read
-    master->( dbrunlock() )
-   endif
-   hirer->( dbgoto( hir_rec ) )
-
-  case mkey = K_F4
-   abs_edit( 'master' )
-
-  case mkey == K_F5
-   Enq_items( mContractNum )
-
-  case mkey == K_F6
-   Enq_trans( mContractNum )
-
-  case mkey == K_F7
-   Enq_arrears( mContractNum )
-
-#ifdef CREDIT_CARD
-  case mkey == K_F8
-   Enq_CredCard( mContractNum )
-#endif
-#ifdef RENTACENTRE
-  case mkey == K_F9
-   Pickup_Calc( mContractNum )
-#endif
-#ifdef BYRNES
-  case mkey == K_F10
-   ChangeEndDate()
-#endif
-  case mkey == K_F11
-   ChangeStatus()
-
-  case mkey = K_ESC .or. mkey = K_RDBLCLK
-
-   exit
-  endcase
-
- enddo
-
-enddo
-Oddvars( ENQ_STATUS, TRUE )
 close databases
-return
 
-*
+Box_Restore( mscr )
+return nil
+
+/*
+
 
 procedure ContractEnq ( mContractNum )
 local mrow
@@ -239,19 +162,19 @@ Box_Save( 16, 33, 20, 79, C_BLUE )
 @ 16,63 say 'Rent'
 @ 16,69 say 'Serial'
 
-// Reposition Items file
-items->( dbseek( mContractNum ) )
+// Reposition assets file
+assets->( dbseek( mContractNum ) )
 
-while items->con_no = mContractNum .and. !items->( eof() )
- HighLight( mrow, 33, '', items->item_code )
-// @ mrow,34 say items->item_code
- HighLight( mrow, 44, '', left( items->desc, 15 ) )
- HighLight( mrow, 61, '', transform( items->( fieldget( fieldpos( master->term_rent + '_rent' ) ) ), '999.99') )
- HighLight( mrow, 68, '', trim( items->serial ) )
+while assets->con_no = mContractNum .and. !assets->( eof() )
+ HighLight( mrow, 33, '', assets->item_code )
+// @ mrow,34 say assets->item_code
+ HighLight( mrow, 44, '', left( assets->desc, 15 ) )
+ HighLight( mrow, 61, '', transform( assets->( fieldget( fieldpos( master->term_rent + '_rent' ) ) ), '999.99') )
+ HighLight( mrow, 68, '', trim( assets->serial ) )
 #ifdef INSURANCE
- minsure += items->insurance
+ minsure += assets->insurance
 #endif
- items->( dbskip() )
+ assets->( dbskip() )
  mrow++
 
 enddo
@@ -300,57 +223,6 @@ return
 
 *
 
-function enq_items ( mContractNum )
-local mscr := Box_Save()
-local mkey
-local enqobj
-
-master->( dbseek( mContractNum ) )
-if master->inquiry
- Error('Contract selected is Enquiry only - no stock',12)
-
-else
- if items->( eof() )
-  Error( 'No stock attached to this contract', 12 )
-
- else 
-  Heading('Item inquiry on Contract #' + Ns( mContractNum ) )
-  select items
-  enqobj:=tbrowsedb( 01, 00, 24, 79 )
-  enqobj:colorspec := if( iscolor(), TB_COLOR, setcolor() )
-  enqobj:HeadSep := HEADSEP
-  enqobj:ColSep := COLSEP
-  enqobj:goTopBlock := { || jumptotop( mContractNum ) }
-  enqobj:goBottomBlock := { || jumptobott( mContractNum ) }
-  enqobj:skipBlock:={ | SkipCnt | AwSkipIt( SkipCnt, { || items->con_no },mContractNum )}
-  enqobj:addcolumn( tbcolumnNew( 'Item Code', { || items->item_code } ) )
-  enqobj:addcolumn( tbcolumnNew( 'Description', { || left( items->desc, 30 ) } ) )
-#ifndef RENTACENTRE
-  enqobj:addcolumn( tbcolumnNew( 'Model', { || left( items->model, 20 ) } ) )
-  enqobj:addcolumn( tbcolumnNew( 'Serial', { || items->serial } ) )
-#endif 
-  enqobj:freeze := 1
-  mkey := 0
-
-  while mkey != K_ESC .and. mkey != K_RDBLCLK
-   enqobj:forcestable()
-   mkey := inkey(0)
-
-   if !Navigate( enqobj, mkey )
-    if mkey == K_ENTER .or. mkey == K_LDBLCLK
-     assetSay()
-
-    endif
-
-   endif
-
-  enddo
-
- endif
-
-endif
-Box_Restore( mscr )
-return nil
 
 *
 
@@ -463,7 +335,7 @@ return nil
 
 *
 
-procedure enqitems
+procedure enqassets
 
 local mgo := FALSE, mitem, mchoice, mcode, mkeypress
 local oldscr := Box_Save()
@@ -480,10 +352,10 @@ local cStrPart, nrow, bit, lFlag, nSelected
 if NetUse( "hirer" )
  if NetUse( "stkhist" )
   if NetUse( "owner" )
-   if NetUse( "items" )
-    set relation to items->owner_code into owner, ;
-                 to items->item_code into stkhist, ;
-                 to items->con_no into hirer
+   if NetUse( "assets" )
+    set relation to assets->owner_code into owner, ;
+                 to assets->item_code into stkhist, ;
+                 to assets->con_no into hirer
     mgo := TRUE
 
    endif
@@ -506,7 +378,7 @@ while mgo
  aadd( aArray, { 'Part','Search Stock by Part of Field' } )
  mchoice := Menugen( aArray, 4, 2, 'Item' )
 
- select items
+ select assets
  do case
  case mchoice = 2
   while TRUE
@@ -519,12 +391,12 @@ while mgo
     exit
 
    else
-    items->( ordsetfocus( 'item_code' ) )
-    if !items->( dbseek( mcode ) )
+    assets->( ordsetfocus( 'item_code' ) )
+    if !assets->( dbseek( mcode ) )
      Error( 'Code not ' + trim(mcode) + ' on file',12 )
 
     else
-     assetSay()
+     assetForm( TRUE )
 
     endif
    endif
@@ -533,11 +405,11 @@ while mgo
  case mchoice = 3 .or. mchoice = 4
 
   if mchoice = 3
-   items->( ordsetfocus( 'serial' ) )
+   assets->( ordsetfocus( 'serial' ) )
    mkey = 'Serial'
 
   else
-   items->( ordsetfocus( 'model' ) )
+   assets->( ordsetfocus( 'model' ) )
    mkey = 'Model'
 
   endif
@@ -552,31 +424,31 @@ while mgo
    read
 
    if !updated()
-    items->( ordsetfocus( 'contract' ) )
+    assets->( ordsetfocus( 'contract' ) )
     exit
 
    else
     mitem := trim( mitem )
 
-    if !items->( dbseek( mitem ) )
+    if !assets->( dbseek( mitem ) )
      Error('No '+ mkey + ' match on file',12 )
 
     else
      @ 1,0 clear to 24,79
-     select items
+     select assets
      enqobj:=tbrowsedb( 01, 0, 24, 79 )
      enqobj:colorspec := if( iscolor(), TB_COLOR, setcolor() )
      enqobj:HeadSep := HEADSEP
      enqobj:ColSep := COLSEP
      enqobj:goTopBlock := { || jumptotop( mitem ) }
      enqobj:goBottomBlock := { || jumptobott( mitem ) }
-     enqobj:skipBlock := { |SkipCnt| AwSkipIt( SkipCnt, { || if( mchoice=3, items->serial,items->model ) }, mitem ) }
-     enqobj:addcolumn( tbcolumnNew( 'Item Code', { || items->item_code } ) )
-     enqobj:addcolumn( tbcolumnNew( 'Model No', { || left( items->model, 15 ) } ) )
-     enqobj:addcolumn( tbcolumnNew( 'Serial No', { || left( items->serial, 15 ) } ) )
-     enqobj:addcolumn( tbcolumnNew( 'Description', { || left( items->desc, 20 ) } ) )
-     enqobj:addcolumn( tbcolumnNew( 'Stat', { || items->status } ) )
-     enqobj:addcolumn( tbcolumnNew( 'Owner', { || items->owner_code } ) )
+     enqobj:skipBlock := { |SkipCnt| AwSkipIt( SkipCnt, { || if( mchoice=3, assets->serial,assets->model ) }, mitem ) }
+     enqobj:addcolumn( tbcolumnNew( 'Item Code', { || assets->item_code } ) )
+     enqobj:addcolumn( tbcolumnNew( 'Model No', { || left( assets->model, 15 ) } ) )
+     enqobj:addcolumn( tbcolumnNew( 'Serial No', { || left( assets->serial, 15 ) } ) )
+     enqobj:addcolumn( tbcolumnNew( 'Description', { || left( assets->desc, 20 ) } ) )
+     enqobj:addcolumn( tbcolumnNew( 'Stat', { || assets->status } ) )
+     enqobj:addcolumn( tbcolumnNew( 'Owner', { || assets->owner_code } ) )
      enqobj:freeze := 1
      mkeypress := 0
      while mkeypress != K_ESC
@@ -588,9 +460,9 @@ while mgo
 
        if mkeypress = K_ENTER .or. mkeypress == K_LDBLCLK
 
-        assetSay()
+        assetForm( TRUE )
 
-        Oddvars( LASTITEM, items->item_code )
+        Oddvars( LASTITEM, assets->item_code )
 
        endif
 
@@ -625,18 +497,18 @@ while mgo
      Error( 'No history found for ' + trim( stk_code ), 12 )
 
     else
-     items->( ordsetfocus( 'Item_code' ) )
-     items->( dbseek( trim( stk_code ) ) )
+     assets->( ordsetfocus( 'Item_code' ) )
+     assets->( dbseek( trim( stk_code ) ) )
 
      @ 1,0 clear to 24,79
-     Highlight( 1, 1, 'Description', left( items->desc, 20 ) )
+     Highlight( 1, 1, 'Description', left( assets->desc, 20 ) )
 #ifdef ARGYLE
-     Highlight( 1, 40, '   Status', LookItUp( "status", items->status ) )
+     Highlight( 1, 40, '   Status', LookItUp( "status", assets->status ) )
 #else
-     Highlight( 1, 40, '   Status', st_status( items->status ) )
+     Highlight( 1, 40, '   Status', st_status( assets->status ) )
 #endif
-     Highlight( 2, 1, '      Model', items->model )
-     Highlight( 2, 40, 'Serial No', items->serial )
+     Highlight( 2, 1, '      Model', assets->model )
+     Highlight( 2, 40, 'Serial No', assets->serial )
      select stkhist
      stkhist->( dbseek( stk_code ) )
      enqobj := tbrowsedb( 04, 0, 24, 79 )
@@ -663,10 +535,10 @@ while mgo
 
        do case
        case mkeypress = K_F10
-        select items
-        assetSay()
+        select assets
+        assetForm( TRUE )
 
-        Oddvars( LASTITEM, items->item_code )
+        Oddvars( LASTITEM, assets->item_code )
 
         select stkhist
 
@@ -718,7 +590,7 @@ while mgo
    endif
 
   enddo
-  select items
+  select assets
 
  case mchoice = 6
   mscr1 := Box_Save()
@@ -726,7 +598,7 @@ while mgo
   while TRUE
    Box_Restore( mscr1 )
    Heading('Select Field to Search within')
-   select items
+   select assets
    dstru:= dbstruct()
    astru:={}
    mlen := len(dstru)
@@ -755,7 +627,7 @@ while mgo
      exit
 
     else
-     select items
+     select assets
 
      ordsetfocus()  // No index in use
      cls
@@ -773,10 +645,10 @@ while mgo
       if cStrPart $ upper(trim(fieldget(bit)))
 
        @ nRow,00 say nPos pict '999'
-       @ nRow,04 say substr( items->item_code, 1, 10 )
-       @ nRow,15 say substr( items->desc, 1, 25 )
-       @ nRow,42 say substr( items->model, 1, 15 )
-       @ nRow,59 say items->status
+       @ nRow,04 say substr( assets->item_code, 1, 10 )
+       @ nRow,15 say substr( assets->desc, 1, 25 )
+       @ nRow,42 say substr( assets->model, 1, 15 )
+       @ nRow,59 say assets->status
 
        rec_list[nPos] := recno()
        nRow++
@@ -804,7 +676,7 @@ while mgo
         endif
         if updated()
          goto rec_list[ nSelected ]
-         assetSay()
+         assetForm( TRUE )
         endif
        enddo
       endif
@@ -812,7 +684,7 @@ while mgo
     endif
    endif
    // vidmode( 25,80 )
-   select items
+   select assets
    ordsetfocus( 'contract' )
   enddo
 
@@ -941,3 +813,4 @@ endif
 
 return nil
 
+*/

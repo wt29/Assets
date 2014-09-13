@@ -1,5 +1,5 @@
 * Asset_scan - Bluegum Software
-* Module Asstk - Stocktake Module
+* Module UtilStock - Stocktake Module
 * 28/10/86 T. Glynn 11:03:03  9/23/1987
 **************************************
 
@@ -34,7 +34,7 @@ while TRUE
  menu to choice
  do case
  case choice = 2
-  Box_Save(03,08,09,72)
+  Box_Save(03,03,09,75)
   Center(04,'This module will prepare the asset file for the stocktake.')
   Center(05,'It clears the stocktake found flag and last stocktake location.')
   Center(07,'It is a mandatory step in the stocktaking process.')
@@ -45,7 +45,7 @@ while TRUE
    assets->( dbgotop() )
    while !assets->( eof() )
     Rec_lock()
-    assets->prevLocation = assets->Location
+    assets->prevLoc := assets->Location
     assets->( dbrunlock() )
     assets->( dbskip() )
    enddo

@@ -15,7 +15,7 @@ Procedure ErrorSys()
 
 Return
 
-Static Function ErrorMenu(oEr)
+Static Function ErrorMenu( oEr )
 
 Local nErrLines,nActCount,cChoices,nErrTop,nErrBot,nChoice,cChoice,cErrScr,nIntense,;
       cDevice,ccolor,bOldErr,cMsg,cErrWrnMsg,nLogFile
@@ -43,6 +43,7 @@ local oPrinter
 local aErrors := {}     // Captures the callstack for output to the printer
 local x                 // loop counter
 local nHandle           // File Handle to save the error
+local aBox              // Save the screen in case retry works.
 
 do case
 case (oEr:genCode == EG_ZERODIV)
@@ -95,8 +96,9 @@ while cchoice != 'A'
  nerrtop := 5
  nerrbot := min( nErrtop+nErrLines+5, 24-1 )
 
- @ nErrTop,0 clear to nErrBot,60
- @ nErrTop,0 to nErrBot,60 color 'B+/r'
+//  @ nErrTop,0 clear to nErrBot,60
+ aBox = Box_Save( nErrTop, 0, nErrBot, 60, C_RED )
+ // @ nErrTop,0 to nErrBot,60 color 'B+/r'
 
  do case
  case oEr:severity==ES_CATASTROPHIC
@@ -211,7 +213,7 @@ while cchoice != 'A'
  do case
  case ( oEr:canretry ) .and. nchoice = 1
   Errorblock( bOldErr )
-  Box_Restore( cErrScr )
+  Box_Restore( aBox )
   return TRUE
 
  case ( !oEr:canRetry .and. nchoice = 1 ) .or. (  oEr:canRetry .and. nchoice = 2 )
@@ -228,13 +230,11 @@ while cchoice != 'A'
   LP( oPrinter, BIGCHARS )
   LP( oPrinter, 'Time ' + time() + '  Ph.' + globalVars( B_PHONE ) )
   LP( oPrinter, NOBIGCHARS )
-//  LP( oPrinter, trim( version() ) + ' ' + globalVars( B_BRANCH ) )
   LP( oPrinter, '' )
   for x := 1 to len( aErrors )
    LP( oPrinter, aErrors[ x ]  )
 
   next
-//  Printgraph( oPrinter )    // Adds the screen print to the mix
   LP( oPrinter, '' )
   LP( oPrinter, BIGCHARS )
   LP( oPrinter, 'Please send me to ' + DEVELOPER + '. Email address is ' + SUPPORT_EMAIL )

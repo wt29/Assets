@@ -62,7 +62,7 @@ while ok
    else
 
     Add_rec( 'owner' )
-    owner->id := mown
+    owner->code := mown
     Box_Save( 02, 09, 11, 71 )
     @ 03,11 say '          Name' get owner->name
     @ 05,11 say '       Address' get owner->add1
@@ -174,7 +174,7 @@ while ok
       if Isready( 12 )
        assets->( dbgotop() )
        while ! assets->( eof() )
-        Highlight( 7, 10, 'Asset ID', assets->assetID )
+        Highlight( 7, 10, 'Asset ID', assets->code )
         if assets->ownerID = cOldOwner
          Rec_lock( 'assets' )
          assets->ownerID := cNewOwner

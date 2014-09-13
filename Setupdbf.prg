@@ -79,13 +79,13 @@ default sFileExtension to TEMP_EXT
 
 // Assets
 aFldDef:={}
-aadd( aFldDef, { "assetid", "c", ASSET_CODE_LEN, 0 } )
+aadd( aFldDef, { "code", "c", ASSET_CODE_LEN, 0 } )
 aadd( aFldDef, { "serial", "c", 40, 0 } )
 aadd( aFldDef, { "desc", "c", 40, 0 } )
 aadd( aFldDef, { "model", "c", 30, 0 } )
 aadd( aFldDef, { "ownerId", "c", OWNER_CODE_LEN, 0 } )
-aadd( aFldDef, { "location", "c", 10, 0 } )
-aadd( aFldDef, { "prevLocation", "c", 10, 0 } )
+aadd( aFldDef, { "location", "c", ASSET_CODE_LEN, 0 } )
+aadd( aFldDef, { "prevLoc", "c", ASSET_CODE_LEN, 0 } )
 aadd( aFldDef, { "cost", "n", 8, 2 } )
 aadd( aFldDef, { "value", "n", 8, 2 } )
 aadd( aFldDef, { "received", "d", 8, 0 } )
@@ -101,29 +101,34 @@ aadd( aFldDef, { "pay_made", "n", 2, 0 } )
 aadd( aFldDef, { "pay_out", "n", 8, 2 } )
 aadd( aFldDef, { "prod_code", "c", 10, 0 } )
 aadd( aFldDef, { "insurance", "n", 12, 2 } )
+aadd( aFldDef, { "serv_date", "d", 8, 0 } )
+aadd( aFldDef, { "depr_mthd", "c", 1, 0 } )
+aadd( aFldDef, { "depr_life", "n", 5, 0 } )
+aadd( aFldDef, { "salvage", "n", 12, 2 } )
+
 dbcreate( sPath + "assets" + sFileExtension, aFldDef )
 
 // Product Code
 aFldDef:={}
-aadd( aFldDef, { "id", "c", 10, 0 } )
+aadd( aFldDef, { "code", "c", 10, 0 } )
 aadd( aFldDef, { "name", "c", 30, 0 } )
 dbcreate( sPath + "prodcode" + sFileExtension, aFldDef )
 
 // Asset Status
 aFldDef:={}
-aadd( aFldDef, { "ID", "c", 1, 0 } )
+aadd( aFldDef, { "code", "c", 1, 0 } )
 aadd( aFldDef, { "name", "c", 30, 0 } )
 dbcreate( sPath + "status" + sFileExtension, aFldDef )
 
-// Location Status
+// Location - Physical Asset Location Codes
 aFldDef:={}
-aadd( aFldDef, { "ID", "c", 1, 0 } )
+aadd( aFldDef, { "code", "c",  ASSET_CODE_LEN, 0 } )
 aadd( aFldDef, { "desc", "c", 30, 0 } )
 dbcreate( sPath + "location" + sFileExtension, aFldDef )
 
 // Owner
 aFldDef:={}
-aadd( aFldDef, { "id", "c", 3, 0 } )
+aadd( aFldDef, { "code", "c", 3, 0 } )
 aadd( aFldDef, { "name", "c", 30, 0 } )
 aadd( aFldDef, { "add1", "c", 30, 0 } )
 aadd( aFldDef, { "add2", "c", 30, 0 } )
@@ -155,7 +160,7 @@ dbcreate( sPath + "system" + sFileExtension, aFldDef )
 
 // operator
 aFldDef:={}
-aadd( aFldDef, { "id", "c", 3, 0 } )
+aadd( aFldDef, { "code", "c", 3, 0 } )
 aadd( aFldDef, { "name", "c", 25, 0 } )
 aadd( aFldDef, { "password", "c", 10, 0 } )
 aadd( aFldDef, { "mask", "c", 50, 0 } )

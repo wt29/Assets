@@ -13,7 +13,7 @@ Function MainAsset
 
 local ok := FALSE, getlist:={}, loopval, choice, sCode, sOwnerID, sOwnerID2
 
-local sOwnerID1, newloop, mnext, aArray
+local sOwnerID1, newloop, aArray
 
 local oldscr := Box_Save()
 local mtemp
@@ -22,9 +22,9 @@ local cScr
 if NetUse( "location" )
  if NetUse( "owner" )
   if NetUse( "assets" )
-   assets->( ordsetfocus( 'assetid' ) )
+   assets->( ordsetfocus( 'code' ) )
    set relation to assets->ownerId into owner,;
-                to assets->assetId into location
+                to assets->code into location
    ok := TRUE
   endif
  endif
@@ -43,7 +43,7 @@ while ok
  aadd( aArray, { 'Owner', 'Change owner details for Asset' } )
  aadd( aArray, { 'Delete', 'Delete Assets from file' } )
  // aadd( aArray, { 'History', 'Modify Stock Histories' } )
- choice := MenuGen( aArray, 04, 13, 'File' )
+ choice := MenuGen( aArray, 03, 13, 'Assets' )
 
  do case
  case choice = 2 .and. Secure( X_ADDFILES )
@@ -80,9 +80,9 @@ while ok
 
       else
        Add_rec( 'Assets' )
-       Assets->assetId := sCode
-       Assets->owner_code := sOwnerID
-       AssetGet()
+       Assets->code := sCode
+       Assets->ownerId := sOwnerID
+       AssetForm( FALSE )
        if !updated()
         Assets->( dbdelete() )
        endif
@@ -95,9 +95,7 @@ while ok
   enddo
 
  case choice = 3 .and. Secure( X_EDITFILES )
-
   loopval := TRUE
-
   while loopval
    sCode = space(10)
 
@@ -113,7 +111,7 @@ while ok
 
     else
      Rec_lock( 'Assets' )
-     Assetget()
+     AssetForm( FALSE )
      Assets->( dbrunlock() )
 
     endif
@@ -305,118 +303,167 @@ return nil
 
 *
 
-procedure Assetget
-local getlist:={}
+procedure AssetForm ( lReadOnly )
+local getlist:={}, sLabel
 local bKF4        // Old F4 Key
-local okaf10 := setkey( K_ALT_F10, { || AssetContEdit() } )
-local okaf7 := setkey( K_ALT_F10, { || AssetContEdit() } )
+
 local mscr := Box_Save(), cAssetstatus := Assets->status
+
 cls
+
 Heading( 'Asset Editing Screen' )
-Highlight( 02, 04, 'Asset code', Assets->id )
-@ 04,01 say '    Model no' get Assets->model pict '@!'
-@ 05,01 say ' Description' get Assets->desc pict '@!'
-@ 06,01 say '   Serial no' get Assets->serial pict '@!'
-#ifdef VALIDATE_PRODCODE
-@ 07,01 say 'Product code' get Assets->prod_code pict '@!' valid( dup_chk( Assets->prod_code, 'prodcode' ) )
-#else
-@ 07,01 say 'Product code' get Assets->prod_code pict '@!'
-#endif
-#ifdef MEDI
-@ 08,01 say 'MYOB Code' get Assets->MYOBCode pict '@!' valid( dup_chk( Assets->myobcode, 'myobcode' ) )
-#endif
-Highlight( 09, 08, 'Owner', Lookitup( "owner" , Assets->owner_code ) )
 
-#ifdef ARGYLE
-@ 10, 07 say 'Status' get Assets->status valid( dup_chk( Assets->status, 'status' ) )
-Highlight( 10, 18, '', LookItUp( 'status', Assets->Status ) )
-
-#else
-@ 10, 07 say 'Status' get Assets->status when Assets->con_no <= 0 pict '!' ;
-         valid( Assets->status $ 'TSCORW' )
-
-HighFirst( 11, 0, 'Theft Sold ClearOut Onhand Repair Writeoff' )
-
-Highlight( 10, 18, '', st_status( Assets->status ) )
-
-#endif
-Highlight( 12, 07, 'Account No', Assets->con_no )
-Highlight( 03, 53, '', 'Rental Amounts' )
-@ 04,55 say '    Monthly' get Assets->m_rent pict '999.99' valid( Assets->m_rent > 0)
-@ 05,55 say 'Fortnightly' get Assets->f_rent pict '999.99' valid( Assets->f_rent > 0)
-@ 06,55 say '     Weekly' get Assets->w_rent pict '999.99' valid( Assets->w_rent > 0)
-@ 07,55 say '      Daily' get Assets->d_rent pict '999.99' valid( Assets->d_rent > 0)
-@ 08,45 say 'All rental Amount fields must have a value!'
-
-#ifdef INSURANCE
-@ 03,69 say 'Ins.'
-@ 04,73 get Assets->insurance pict '999.99'
-#endif
-
-@ 13,01 say '  Rentals YTD' get Assets->rent_ytd pict '99999.99'
-@ 14,01 say 'Rentals total' get Assets->rent_tot pict '99999.99'
-@ 16,01 say '  Last rented' get Assets->last_rent
-@ 17,01 say 'Last returned' get Assets->last_ret
-@ 19,01 say 'Original cost' get Assets->cost
-@ 20,01 say 'Purchase date' get Assets->received
-@ 21,01 say 'Warranty exp.' get Assets->warranty_d
-
-Highlight( 10, 53, '', 'Leasing details' )
-@ 11,45 say '    Monthly payments' get Assets->month_pay pict '99999.99'
-@ 12,45 say '   Lease term (mths)' get Assets->lease_term pict '99'
-@ 13,45 say '       Payments made' get Assets->pay_made pict '99'
-@ 14,45 say '    Lease Interest %' get Assets->interest pict '99.99'
-@ 15,45 say '  Lease payments ytd' get Assets->pay_ytd pict '99999.99'
-@ 16,45 say 'Lease payments total' get Assets->pay_tot pict '99999.99'
-
-#ifdef AssetS
-if Assets
- Highlight( 17, 46 , '' , 'Fixed Asset Information' )
- @ 18,40 say "   Date into Service" get Assets->serv_date
- @ 19,40 say " Depreciation Method" get Assets->depr_mthd pict "!" valid( Assets->depr_mthd $ 'SD' )
- @ 19,65 say "<S>tL,<D>ecYear"
- @ 20,40 say "    Depreciable Life" get Assets->depr_life
- @ 21,40 say "       Salvage Value" get Assets->salvage pict "9999999.99";
-         valid( Assets->salvage <= Assets->cost )
- @ 22,37 SAY 'Must be less than or equal to Cost'
+Highlight( 02, 04, 'Asset code', Assets->code )
+if lReadOnly
+ Highlight( 04, 01, '     Model no', assets->model )
+else
+ @ 04,01 say '    Model no' get assets->model pict '@!'
 endif
-#endif
-
-bKF4 := setkey( K_F4, { || Abs_edit( 'Assets', nil, TRUE ) } )   // Abs with record locked!
-
-read
-
-setkey( K_F4, bKF4 )
-
-#ifdef RENTACENTRE
-if cAssetstatus != Assets->Status
- Audit( 0, MACHINE_MOVEMENT, 0, St_Status( Assets->status ), Assets->id )
+if lReadOnly
+ Highlight( 05, 01, '  Description', assets->desc )
+else
+ @ 05,01 say ' Description' get Assets->desc 
 endif
-if updated()
- Audit( Assets->con_no, Asset_FILE_CHANGED, 0, '', Assets->id )
+if lReadOnly
+ Highlight( 06, 01, '    Serial no', assets->serial )
+else
+ @ 06,01 say '   Serial no' get Assets->serial pict '@!'
 endif
-#endif
-setkey( K_ALT_F10, okaf10 )
-Oddvars( LASTAsset, Assets->id )
+
+if lReadOnly
+ Highlight( 07, 01, ' Product code', assets->prod_code )
+else
+ @ 07,01 say 'Product code' get Assets->prod_code pict '@!' valid( dup_chk( Assets->prod_code, 'prodcode' ) )
+endif
+
+if lReadOnly
+ Highlight( 08, 01, '        Owner', LookItup( "owner" , assets->ownerID ) )
+else
+ Highlight( 08, 08, 'Owner', Lookitup( "owner" , Assets->ownerID ) )
+endif
+
+if lReadOnly
+ Highlight( 09, 01, '       Status', LookItUp( 'status', Assets->Status ) )
+else
+ @ 09, 07 say 'Status' get Assets->status valid( dup_chk( Assets->status, 'status' ) )
+endif
+
+
+if lReadOnly
+ Highlight( 11, 01, 'Original cost', Ns( assets->cost ) )
+else
+ @ 11,01 say 'Original cost' get Assets->cost
+endif
+
+if lReadOnly
+ Highlight( 12, 01, 'Purchase date', dtoc( assets->received ) )
+else
+ @ 12,01 say 'Purchase date' get Assets->received
+endif
+
+if lReadOnly
+ Highlight( 13, 01, 'Warranty exp.', dtoc( assets->warranty_d ) )
+else
+ @ 13,01 say 'Warranty exp.' get Assets->warranty_d
+endif
+
+Highlight( 15, 05, '', 'Leasing Details' )
+
+if lReadOnly
+ Highlight( 16, 01, '    Monthly payments', Ns( assets->month_pay ) )
+else
+ @ 16, 01 say '    Monthly payments' get Assets->month_pay pict '999999.99'
+endif 
+
+if lReadOnly
+ Highlight( 17, 01, '   Lease term (mths)', Ns( assets->lease_term ) )
+else
+ @ 17, 01 say '   Lease term (mths)' get Assets->lease_term pict '99'
+endif
+
+if lReadOnly
+ Highlight( 18, 01, '       Payments made', Ns( assets->pay_made ) )
+else
+ @ 18, 01 say '       Payments made' get Assets->pay_made pict '99'
+endif
+if lReadOnly
+ Highlight( 19, 01, '    Lease interest %', Ns( assets->interest ) )
+else
+ @ 19, 01 say '    Lease Interest %' get Assets->interest pict '99.99'
+endif
+
+if lReadOnly
+ Highlight( 20, 01, '  Lease payments ytd', Ns( assets->pay_ytd ) )
+
+else
+ @ 20, 01 say '  Lease payments ytd' get Assets->pay_ytd pict '99999.99'
+
+endif
+
+if lReadOnly
+ Highlight( 21, 01, 'Lease payments total', Ns( assets->pay_tot ) )
+
+else
+ @ 21, 01 say 'Lease payments total' get Assets->pay_tot pict '99999.99'
+
+endif
+
+if lReadOnly
+ Highlight( 22, 01, '   Rule of 78 payout', Ns( Rule_78( assets->cost, assets->lease_term, ;
+          assets->pay_made, assets->month_pay ) ) )
+
+endif
+
+Highlight( 15, 46 , '' , 'Fixed Asset Information' )
+sLabel := "   Date into Service"
+if lReadOnly
+ Highlight( 16, 30, sLabel, assets->serv_date )
+else 
+ @ 16, 30 say sLabel get Assets->serv_date
+endif
+sLabel := " Depreciation Method"
+if lReadOnly
+ Highlight( 17, 30, sLabel, assets->depr_mthd )
+else 
+ @ 17, 30 say sLabel get Assets->depr_mthd pict "!" valid( Assets->depr_mthd $ 'SD' )
+endif
+Highlight( 17, 55, "", "<S>tL,<D>ecYear" )
+sLabel := "    Depreciable Life"
+if lReadOnly
+ Highlight( 18, 30, sLabel, assets->depr_life )
+else
+ @ 18, 30 say sLabel get Assets->depr_life
+endif
+Highlight( 18, 63, "", "Months" )
+sLabel := "       Salvage Value"
+if lReadOnly
+ Highlight( 19, 30, sLabel, assets->salvage )
+else
+ @ 19, 30 say "       Salvage Value" get Assets->salvage pict "9999999.99" valid( Assets->salvage <= Assets->cost )
+endif
+Highlight( 20, 40, '', 'Must be less than or equal to Cost' )
+
+if !lReadOnly
+ bKF4 := setkey( K_F4, { || Abs_edit( 'Assets', nil, TRUE ) } )   // Abs with record locked!
+ read
+ setkey( K_F4, bKF4 )
+
+else
+ Error( "" )
+
+ endif
+
+
 Box_Restore( mscr )
 return
 
 *
 
-Static Function AssetContEdit
-local mscr := Box_Save( 3, 10, 5, 40 )
-local getlist := {}
-local oldcon := Assets->con_no
-@ 4, 12 say 'New Contract Number' get Assets->con_no pict '9999999'
-read
-Box_Restore( mscr )
-SysAudit( 'AssetContNumChange' + Ns( oldcon ) + '/' + Ns( Assets->con_no ) )
-return nil
 
 
-*
+/*
 
-procedure assetSay ( mfile )
+procedure assetSay assets
 local mscr := Box_Save()
 local owner_not_open := ( select( 'owner' ) = 0 )
 local nCurr := 0, nYTD := 0, nAccum := 0
@@ -425,16 +472,37 @@ default mfile to 'Assets'
 cls
 
 Heading( 'Asset Details' )
+if lReadOnly
 Highlight( 02, 01, '   Asset Code', ( mfile )->id )
+else
+if lReadOnly
 Highlight( 04, 01, '     Model no', ( mfile )->model )
+else
+if lReadOnly
 Highlight( 05, 01, '  Description', ( mfile )->desc )
+else
+if lReadOnly
 Highlight( 06, 01, '    Serial no', ( mfile )->serial )
+else
+if lReadOnly
 Highlight( 07, 01, ' Product code', ( mfile )->prod_code )
+else
+if lReadOnly
 Highlight( 09, 01, '        Owner', LookItup( "owner" , ( mfile )->owner_code ) )
+else
+if lReadOnly
 Highlight( 10, 01, '       Status', st_status( ( mfile )->status ) )
+else
+if lReadOnly
 Highlight( 11, 01, '  Contract no', Ns( ( mfile )->con_no ) )
+else
+if lReadOnly
 Highlight( 01, 54, 'Rentals' , '' )
+else
+if lReadOnly
 Highlight( 02, 54, 'ÄÄÄÄÄÄÄ' , '' )
+else
+if lReadOnly
 Highlight( 03, 50, '    Monthly', Ns( ( mfile )->m_rent ) )
 Highlight( 04, 50, 'Fortnightly', Ns( ( mfile )->f_rent ) )
 Highlight( 05, 50, '     Weekly', Ns( ( mfile )->w_rent ) )
@@ -446,16 +514,35 @@ Highlight( 13, 01, '  Rentals YTD', Ns( ( mfile )->rent_ytd ) )
 Highlight( 14, 01, 'Rentals Total', Ns( ( mfile )->rent_tot ) )
 Highlight( 16, 01, '  Last rented', dtoc( ( mfile )->last_rent ) )
 Highlight( 17, 01, 'Last returned', dtoc( ( mfile )->last_ret ) )
+if lReadOnly
 Highlight( 19, 01, 'Original cost', Ns( ( mfile )->cost ) )
+else
+if lReadOnly
 Highlight( 20, 01, 'Purchase date', dtoc( ( mfile )->received ) )
+if lReadOnly
 Highlight( 21, 01, 'Warranty exp.', dtoc( ( mfile )->warranty_d ) )
+else
+if lReadOnly
 Highlight( 08, 48, 'Leasing Details', '' )
+if lReadOnly
 Highlight( 09, 40, '    Monthly payments', Ns( ( mfile )->month_pay ) )
+else
+if lReadOnly
 Highlight( 10, 40, '   Lease term (mths)', Ns( ( mfile )->lease_term ) )
+else
+if lReadOnly
 Highlight( 11, 40, '       Payments made', Ns( ( mfile )->pay_made ) )
+else
+if lReadOnly
 Highlight( 12, 40, '    Lease interest %', Ns( ( mfile )->interest ) )
+else
+if lReadOnly
 Highlight( 13, 40, '  Lease payments ytd', Ns( ( mfile )->pay_ytd ) )
+else
+if lReadOnly
 Highlight( 14, 40, 'Lease payments total', Ns( ( mfile )->pay_tot ) )
+else
+if lReadOnly
 Highlight( 15, 40, '   Rule of 78 payout', Ns( Rule_78( ( mfile )->cost, ( mfile )->lease_term, ;
           ( mfile )->pay_made, ( mfile )->month_pay ) ) )
 
@@ -503,3 +590,4 @@ endif
 oddvars( LASTAsset, (mfile)->id )
 
 return
+*/

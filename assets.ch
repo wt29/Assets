@@ -236,6 +236,7 @@ Version History
 #define X_ADDFILES     8
 #define X_EDITFILES    9
 #define X_DELFILES     10
+#define X_STOCKTAKE    11
 
 #define MB_OK                       0
 #define MB_OKCANCEL                 1
