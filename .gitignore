@@ -28,3 +28,5 @@ dbfstru/
 *.std
 *.exe
 *.lib
+*.tmp
+*.txt

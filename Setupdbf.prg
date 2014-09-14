@@ -87,6 +87,7 @@ aadd( aFldDef, { "ownerId", "c", OWNER_CODE_LEN, 0 } )
 aadd( aFldDef, { "location", "c", ASSET_CODE_LEN, 0 } )
 aadd( aFldDef, { "prevLoc", "c", ASSET_CODE_LEN, 0 } )
 aadd( aFldDef, { "cost", "n", 8, 2 } )
+aadd( aFldDef, { "stocktake", "l", 1, 0 } )
 aadd( aFldDef, { "value", "n", 8, 2 } )
 aadd( aFldDef, { "received", "d", 8, 0 } )
 aadd( aFldDef, { "status", "c", 1, 0 } )
@@ -123,7 +124,7 @@ dbcreate( sPath + "status" + sFileExtension, aFldDef )
 // Location - Physical Asset Location Codes
 aFldDef:={}
 aadd( aFldDef, { "code", "c",  ASSET_CODE_LEN, 0 } )
-aadd( aFldDef, { "desc", "c", 30, 0 } )
+aadd( aFldDef, { "name", "c", 30, 0 } )
 dbcreate( sPath + "location" + sFileExtension, aFldDef )
 
 // Owner
@@ -179,10 +180,20 @@ aadd( aFldDef, { "good", "n", 3, 0 } )
 aadd( aFldDef, { "bad", "n", 3, 0 } )
 dbcreate( sPath + "nodes" + sFileExtension, aFldDef )
 
-// sysrec.r99
+// sysrec - Sort of an audit file
 aFldDef:={}
 aadd( aFldDef, { "FileNo", "n", 6, 0 } )
 dbcreate( sPath + "sysrec" + sFileExtension, aFldDef )
+
+// stkhist - allows a sequential service history including maintenance
+aFldDef:={}
+aadd( aFldDef, { "code", "c", 10, 0 } )     // Item Code
+aadd( aFldDef, { "date", "d", 8, 0 } )      // Record Date
+aadd( aFldDef, { "invoice", "c", 20, 0 } )  // Invoice Date of service
+aadd( aFldDef, { "cost", "n", 10, 2 } )     // Cost of maintenance
+aadd( aFldDef, { "who", "c", 25, 0 } )      // Employee etc who looked after this
+aadd( aFldDef, { "details", "c", 50, 0 } )  // Details
+dbcreate( sPath + "stkhist" + sFileExtension, aFldDef )
 
 return nil
 

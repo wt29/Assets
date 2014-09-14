@@ -15,9 +15,7 @@ procedure UtilSPPA
 
 local getlist := {}
 local aGlobalVars := bvarget()    // this will return an array of all globalVars
-// local mcon_no := Sysinc( 'con_no' )
-local aLocalVars := lvarget()  
-local oKF2, oKF9
+local aLocalVars := lvarget(), oKF2
 
 cls
 Heading( 'Setup System data' )
@@ -30,23 +28,17 @@ Heading( 'Setup System data' )
 @ 08,05 say '      Phone no' get aGlobalVars[ B_PHONE ] pict '(999)9999-9999'
 
 @ 11,05 say '  Month for end of year' get aGlobalVars[ B_EOY ] pict '99' ;
-       valid( mglobalVars[ B_EOY ] $ '01|02|03|04|05|06|07|08|09|10|11|12')
+       valid( aGlobalVars[ B_EOY ] $ '01|02|03|04|05|06|07|08|09|10|11|12')
 @ 11,35 say "'06' for June,'03' for March etc"
 // @ 12,05 say 'Assets Fiscal Year End' get aGlobalVars[ B_FAFISCALY ]
 @ 13,05 say 'Default owner' get aGlobalVars[ B_DEF_OWNER ] pict '!!!'
-@ 14,04 say 'Report Printer' get aLocalVars[ L_REPORT_NAME ] pict 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
-@ 15,03 say 'Barcode Printer' get aLocalVars[ L_BARCODE_NAME ] pict 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
-@ 16,10 say 'Use the Windows Printer Name! - UNC is OK too. !Case Sensitive'
-@ 22,01 say 'Editor Program' get aGlobalVars[ B_EDITOR ]
+@ 15,01 say 'Editor Program' get aGlobalVars[ B_EDITOR ]
 
 okF2 := setkey( K_F2, { || SysData() } )
-// okF9 := setkey( K_F9, { || SMTP() } )
 
 read
 
 setkey( K_F2, okF2 )
-
-// setkey( K_F9, okF9 )
 
 globalVarsave()
 Lvarsave()
@@ -56,31 +48,10 @@ Print_find( 'report' )
 // Sysinc( 'CON_NO', 'R', mcon_no )
 
 return
-
-*
-
-proc sd_set
-local getlist:={}
-local mdate := globalVars( B_SYSDATE )
-local nGSTRate := globalVars( B_GSTRATE )
-local mscr := Box_Save( 2, 25, 5, 56 )
-@ 3,27 say 'System Date' get mdate
-@ 4,27 say '   GST Rate' get nGSTRate pict '99.99'
-read
-globalVars( B_SYSDATE, mdate )
-globalVars( B_GSTRATE, nGSTRate )
-globalVarsave()
-Oddvars( SYSDATE, globalVars( B_SYSDATE ) )
-Box_Restore( mscr )
-return
-
 *
 
 Procedure Sysdata
 local oWindow
-
-// nCurWindow := WVW_nOpenWindow(cWinName, nTop, nLeft, nBottom, nRight)
-   
 
  oWindow := WvW_nOpenWindow( "System Information",0, 0, 06, 60 )
  WvW_SBCreate( oWindow )
@@ -99,7 +70,7 @@ Highlight( 03, 00, 'Compiler', version() )
 Highlight( 04, 00, 'Free Pool', Ns( memory(0) ) )
 Highlight( 05, 00, SYSNAME + ' Build Ver', BUILD_NO )
 Highlight( 06, 00, 'Node', LVars( L_NODE ) )
-
+Highlight( 07, 00, '', '' )
 //   :Activate( .T., .T. ) // Instead of READ CYCLE
 //      :Close()
    

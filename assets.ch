@@ -67,8 +67,6 @@ Version History
 
 #define TOTAL_PICT "9999999.99"
 #define CURRENCY_PICT "999999.99"
-#define CON_NO_PICT "999999"
-
 
 #define RGB( nR,nG,nB )   ( nR + ( nG * 256 ) + ( nB * 256 * 256 ) )
 
@@ -146,10 +144,10 @@ Version History
    IF <v1> == NIL ; <v1> := <x1> ; END                           ;
    [; IF <vn> == NIL ; <vn> := <xn> ; END ]
   
-#define SITELEN 2                // Length of Site Code
-#define ASSET_CODE_LEN 10        // Just in case someone has a ridiculous field len
-#define OWNER_CODE_LEN 3         // Length of Owner Code
-#define ID_FIELD_LEN 10			   // Default Character ID Field Length
+#define SITELEN 2                 // Length of Site Code
+#define ASSET_CODE_LEN 10         // Just in case someone has a ridiculous field len
+#define OWNER_CODE_LEN 3          // Length of Owner Code
+#define ID_FIELD_LEN 10			  // Default Character ID Field Length
 
 #ifdef DEBUG
  #define LICENSEE "Debug"
@@ -195,7 +193,6 @@ Version History
 #define B_PRINTER2     10
 #define B_EDITOR       11   // Name of Editor to use for Print to screen
 #define B_COMPANY      12   // Company Name
-
 
 // Nodes Data - this makes it easy to call the right field in an array. Should map to the nodes.dbf file
 #define L_NODE           1

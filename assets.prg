@@ -230,7 +230,6 @@ while TRUE
    aadd( aMenu, { 'Details', 'Change user details', { || Utilsppa() } } )
    aadd( aMenu, { 'Pack', 'File tidy up procedure', { || Utilpack() } } )
    aadd( aMenu, { 'Index', 'Rebuild Indexes', { || Utilpack( ,TRUE ) } } )
-   aadd( aMenu, { 'Barcodes', 'Print Barcodes', { || CodePrint() } } )
 
    okaf1 := setkey( K_ALT_F1, { || MaintLaunch() } )
 

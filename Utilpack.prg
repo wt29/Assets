@@ -41,6 +41,7 @@ if goforit .or. Isready( )
    indx( 'code', 'code' )
    indx( 'serial', 'serial' )
    indx( 'model', 'model' )
+   indx( 'location', 'location' )
 
   else
    pack
@@ -90,6 +91,19 @@ if goforit .or. Isready( )
   PackStat( packindx, 'Status file' )
 
   if !file( Oddvars( SYSPATH ) + 'status' + indexext() ) .or. must_index
+   indx( 'code', 'code' )
+
+  else
+   pack
+
+  endif 
+
+ endif
+
+ if NetUse( "location", EXCLUSIVE, 10 )
+  PackStat( packindx, 'Location file' )
+
+  if !file( Oddvars( SYSPATH ) + 'location' + indexext() ) .or. must_index
    indx( 'code', 'code' )
 
   else

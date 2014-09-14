@@ -374,153 +374,6 @@ return lReturn
 
 *
 
-/*
-function perdesc ( pcode )
-local lReturn := 'Unknown'
-do case
-case pcode = 'F'
- lReturn := 'Fortnightly'
-case pcode = 'W'
- lReturn := 'Weekly'
-case pcode = 'D'
- lReturn := 'Daily'
-case pcode = 'M'
- lReturn:= 'Monthly'
-endcase
-return lReturn
-
-*
-
-function period ( pcurrent,pnumperiod,pcode )
-local new_month, new_day, new_year, pminext
-local totmths
-do case
-case pcode = 'F'
- pminext := pcurrent + ( 14 * pnumperiod )
-case pcode = 'W'
- pminext := pcurrent + ( 7 * pnumperiod )
-case pcode = 'D'
- pminext := pcurrent + pnumperiod
-otherwise
- if empty( pcurrent )
-  pcurrent := globalVars( B_SYSDATE )
- endif
- totmths := month( pcurrent ) + pnumperiod
- new_month := Ns( int( totmths % 12 ) )
-
- if new_month = '0'
-  new_month := '12'
-
- endif
-
- if len( new_month ) = 1
-  new_month := '0'+ new_month
-
- endif
-
- if ( new_month = '02' .and. day( pcurrent) > 28 ) .or.;
-    ( ( new_month = '04' .or. new_month = '06' .or. new_month = '09' ;
-    .or. new_month = '11' ) .and. day( pcurrent ) = 31 )
-  totmths++
-  new_month := val(new_month) + 1
-  new_month := Ns( new_month )
-  if len(new_month) = 1
-   new_month := '0' + new_month
-  endif
-  new_day := '01'
-
- else
-  new_day := Ns( day( pcurrent ) )
-  if len(new_day) = 1
-   new_day := "0" + new_day
-  endif
-
- endif
-
- if totmths < 13
-  new_year := substr(dtoc(pcurrent),7,2)
-
- else
-  new_year := year(pcurrent) + int(totmths/12)
-  new_year := substr(ltrim(str(new_year)),3,2)
-
- endif
-
- pminext = pcurrent + int(pnumperiod*30.35)
- pminext := ctod(new_day + '/' + new_month + '/' + new_year)
-
-endcase
-return pminext
-
-*
-
-function tran_type ( t_code,t_desc )
-do case
-case t_code = BOND_REFUND      // 'R'
- t_desc := 'Bond Refund'
-case t_code = BOND_PAYMENT     // 'B'
- t_desc := 'Bond Payment'
-case t_code = RENTAL_PAYMENT   // 'P'
- t_desc := 'Rental Payment'
-case t_code = MISC_DEBIT       // 'D'
- t_desc := 'Misc. Debit'
-case t_code = MISC_CREDIT      // 'C'
- t_desc := 'Misc. Credit'
-case t_code = ARREARS_PAYMENT  // 'A'
- t_desc := 'Arrears Payment'
-case t_code = ARREARS_DEBIT    // 'E'
- t_desc := 'Arrears Debit'
-case t_code = MISC_PAYMENT     // 'N'
- t_desc := 'Misc Payment'
-case t_code = RENTAL_INSTALL   // 'Z'
- t_desc := 'Rental Install.'
-case t_code = LATE_PAYMENT_FEE // 'L'
- t_desc := 'Late Payment Fee'
-case t_code = ITEM_ADDED       // 'I'
- t_desc := 'Item Added'
-case t_code = CONTRACT_DELETED // 'X'
- t_desc := 'Contract Deleted'
-case t_code = CONTRACT_ADDED   // 'Y'
- t_desc := 'Contract Added'
-case t_code = DELIVERY_FEE     // 'V'
- t_desc := 'Delivery Fee'
-case t_code = MACHINE_DELETED  // 'M'
- t_desc := 'Machine Deleted'
-case t_code = MACHINE_MOVEMENT // 'T'
- t_desc := 'Machine Movement'
-case t_code = ITEM_FILE_CHANGED // 'Q'
- t_desc := 'Item File Changed'
-otherwise
- t_desc := 'Unknown (' + t_code + ')'
-endcase
-return t_desc
-
-*
-
-function st_status ( mstatus )
-local mdesc
-do case
-case mstatus = 'O'
- mdesc := 'On-hand'
-case mstatus = 'H'
- mdesc := 'Hirer -> ' + trim( hirer->surname ) + ' ' + Ns( hirer->con_no )
-case mstatus = 'R'
- mdesc := 'On Repair'
-case mstatus = 'D'
- mdesc := 'Disposed of'
-case mstatus = 'T'
- mdesc := 'Theft'
-case mstatus = 'S'
- mdesc := 'Sold'
-case mstatus = 'C'
- mdesc := 'Clear Out'
-otherwise
- mdesc := 'Unknown (' + mstatus + ')'
-endcase
-return mdesc
-
-*/
-
 procedure center ( p_line, p_text )
 p_text = trim( p_text )
 @ p_line,40-(len(p_text)/2) say p_text
@@ -628,7 +481,6 @@ return ''
 
 function syscolor ( p_colour )
 local sOldColour := setcolor(), tcolor
-// lcolor := iscolor() - Haven't seen a mono monitor for years
 
 static sTColour := 1
 sOldcolour := sTcolour
@@ -702,16 +554,23 @@ return ( if( messagebox( , ptext, "Input required", MB_YESNO ) = MB_RET_YES, TRU
 
 *
 
-procedure highlight ( r, c, t1, t2, p_pict )
-local oc := setcolor()
+procedure highlight ( r, c, t1, t2, p_pict, sColor )
+local sOldColor := setcolor()
+local sTemp := ""
+default sColor to ''
 @ r,c say t1
-oc := setcolor( 'w+' + substr( oc, at( '/', oc), len( oc ) ) )
+if !empty( sColor )
+ sTemp := sColor + substr( sOldColor, at( '/', sOldColor ) )
+ setcolor( sTemp )
+else
+ setcolor( 'W+' + substr( sOldColor, at( '/', sOldColor ) ) )
+endif 
 if pcount() = 5
  @ r, c + len( t1 ) + 1 say t2 pict ( p_pict )
 else
  @ r, c + len( t1) + 1 say t2
 endif
-setcolor( oc )
+setcolor( sOldColor )
 return
 
 *
@@ -872,45 +731,6 @@ endcase
 set( _SET_SOFTSEEK, msseek )
 return nil
 
-*
-/*
-procedure tran_disp ( mContractNum )
-local tr_row := 3, mcount, ocolor := setcolor()
-select tran
-dbseek( mContractNum )
-count while tran->con_no = mContractNum to mcount
-if mcount > 17
- dbseek( mContractNum )
- mcount -= 17
- dbskip( mcount )
-else
- dbseek( mContractNum )
-endif
-
-Box_Save( 1, 39, 21, 79, C_MAUVE )
-
-Highlight(  01, 45, '', '[ Transactions on Cont # ' + Ns( mContractNum ) + ' ]' )
-
-#ifdef INSURANCE
-@ 02, 40 say '  Date       Amt.  Insure.  Type'
-#else
-@ 02, 40 say '  Date       Amt.     Type'
-#endif
-
-while mContractNum = tran->con_no .and. tr_row < 20 .and. !tran->( eof() )
-
- @ tr_row, 41 say dtoc( tran->date ) + ' ' + str( tran->value, 8, 2 )
-#ifdef INSURANCE
- @ tr_row, 59 say str( tran->insurance, 6, 2 ) + ' ' + left( tran_type( tran->type ), 12 )
-#else
- @ tr_row, 59 say left( tran_type( tran->type ), 17 )
-#endif
- tr_row++
- tran->( dbskip() )
-
-enddo
-return
-*/
 *
 
 function zero( num1,num2 )
@@ -1112,7 +932,6 @@ return
 #endif
 
 *
-
 
 function printgraph   // Prints the screen
 local char:=0
@@ -1705,28 +1524,11 @@ if !found()
  dupbrow:=tbrowsedb( 2, 40, 21, 76 )
  dupbrow:HeadSep := HEADSEP
  dupbrow:ColSep := COLSEP
- if mwork != 'DEBTOR'
-  dupbrow:addcolumn( tbcolumnnew( "Code",{ || ( workarea )->code } ))
-  dupbrow:addcolumn( tbcolumnnew( "Name",{ || left( ( workarea )->name, 20 ) } ))
-  if mwork == 'MYOBCODE'
-   dupbrow:addcolumn( tbcolumnnew( "GST Exempt",{ || ( workarea )->GSTExempt } ))
-  endif
- #ifdef MEDI
-  if mwork == 'PAYTYPE'
-   dupbrow:addcolumn( tbcolumnnew( "MYOB Code",{ || ( workarea )->MYOBCode } ))
-  endif
- #endif
-
- else
-  dupbrow:addcolumn( tbcolumnnew( "Company",{ || ( workarea )->company } ))
-  dupbrow:addcolumn( tbcolumnnew( "Address 1",{ || left( ( workarea )->add1, 20 ) } ))
-  dupbrow:addcolumn( tbcolumnnew( "Address 2",{ || ( workarea )->add2 } ))
-
- endif
-
+ dupbrow:addcolumn( tbcolumnnew( "Code",{ || ( workarea )->code } ))
+ dupbrow:addcolumn( tbcolumnnew( "Name",{ || left( ( workarea )->name, 20 ) } ))
  go top
-
  keybuff:=''
+
  while TRUE
   dupbrow:forcestable()
   key := inkey(0)
@@ -1736,9 +1538,7 @@ if !found()
     mhlparr := {}
     aadd( mhlparr, { '<Esc/End>', 'Exit' } )
     aadd( mhlparr, { '<Enter>', 'Select Item' } )
-    if mwork != 'SUPPLIER' .and. mwork != 'DEPT'
-     aadd( mhlparr, { '<Del>', 'Delete Item' } )
-    endif
+    aadd( mhlparr, { '<Del>', 'Delete Item' } )
     aadd( mhlparr, { '<F10>', 'Edit Details' } )
     aadd( mhlparr, { '<Ins>', 'Add New Item' } )
 #ifdef SECURITY
@@ -1753,120 +1553,91 @@ if !found()
     exit
 
    case key == K_ENTER .or. key == K_LDBLCLK
-    if mwork != 'DEBTOR'
-     keyboard chr( K_HOME )+chr( K_CTRL_Y )+trim( (mwork)->code )+chr( K_ENTER )
-
-    else
-     keyboard chr( K_HOME )+chr( K_CTRL_Y )+trim( (mwork)->debtno )+chr( K_ENTER )
-
-    endif
+    keyboard chr( K_HOME )+chr( K_CTRL_Y )+trim( (mwork)->code )+chr( K_ENTER )
     exit
 
    case key == K_DEL
     if Secure( X_DELFILES )
-     if mwork
-      Error( 'Cannot delete debtor from here... Use Pulsar', 12 )
-     else
-      if Isready( 'Ok to delete '+trim((mwork)->code)+' from file')
-       select ( mwork )
-       Del_rec( mwork, UNLOCK )
-       eval( dupbrow:skipblock , -1 )
-       dupbrow:refreshall()
+     if Isready( 'Ok to delete '+trim((mwork)->code)+' from file')
+      select ( mwork )
+      Del_rec( mwork, UNLOCK )
+      eval( dupbrow:skipblock , -1 )
+      dupbrow:refreshall()
 
-      endif
-
-     endif
+	  endif
 
     endif
 
    case key == K_F10
     if Secure( X_EDITFILES )
-     if mwork == 'DEBTOR'
-      Error( 'Cannot edit debtor from here... Use Pulsar', 12 )
-     else
-      oc:=setcolor()
-      Rec_lock()
-      mscr := Box_Save( 08, 01, 13, 72, C_GREY )
-      Highlight( 09, 07, 'Code', (mwork)->code )
-      @ 10, 03 say '    Name' get name pict '@s40' valid !empty( (mwork)->name )
-      if mwork == 'MYOBCODE'
-       @ 12, 03 say 'GST Exempt' get (mwork)->GSTExempt pict 'Y'
+     oc:=setcolor()
+     Rec_lock()
+     mscr := Box_Save( 08, 01, 13, 72, C_GREY )
+     Highlight( 09, 07, 'Code', (mwork)->code )
+     @ 10, 03 say '    Name' get name pict '@s40' valid !empty( (mwork)->name )
+     if mwork == 'MYOBCODE'
+      @ 12, 03 say 'GST Exempt' get (mwork)->GSTExempt pict 'Y'
 
-      endif
-      if mwork == 'PAYTYPE'
-       @ 12, 03 say 'MYOB Code' get (mwork)->MYOBCode pict '@!'
-
-      endif
-#ifdef SECURITY
-      if mwork == 'OPERATOR'
-       if substr( secmask, X_SUPERVISOR, 1 ) != SEC_CHAR
-          Error( 'You do not have supervisor equivalance - you cannot setup users', 12 )
-       else
-          Box_Restore( SetupSec() )
-       endif
-      endif
-#endif
-      read
-      dbrunlock()
-      Box_Restore( mscr )
-      Setcolor(oc)
-      dupbrow:refreshcurrent()
      endif
+#ifdef SECURITY
+     if mwork == 'OPERATOR'
+      if substr( secmask, X_SUPERVISOR, 1 ) != SEC_CHAR
+       Error( 'You do not have supervisor equivalance - you cannot setup users', 12 )
+      else
+       Box_Restore( SetupSec() )
+      endif
+     endif
+#endif
+     read
+     dbrunlock()
+     Box_Restore( mscr )
+     Setcolor(oc)
+     dupbrow:refreshcurrent()
+
     endif
 
    case key == K_INS
     if Secure( X_ADDFILES )
-     if mwork == 'DEBTOR'
-      Error( 'Cannot add debtor from here... Use Pulsar', 12 )
+     mcat := space( len( ( mwork )->code ) )
+     mscr:=Box_Save( 06, 08, 09, 32+len( mcat ), C_GREEN )
+     @ 7,10 say 'New ' + lower( mwork ) + ' Code' get mcat pict '@!' valid !empty( mcat )
+     read
+     Box_Restore( mscr )
+     if updated()
+      if dbseek( mcat )
+       mscr:=Box_Save( 11, 08, 13, 72, C_GREY )
+       Center( 12, 'Name ÍÍÍ¯ ' + (mwork)->name )
+       Error( 'Code already on file',12 )
+       Box_Restore( mscr )
 
-     else
-      mcat := space( len( ( mwork )->code ) )
-      mscr:=Box_Save( 06, 08, 09, 32+len( mcat ), C_GREEN )
-      @ 7,10 say 'New ' + lower( mwork ) + ' Code' get mcat pict '@!' valid !empty( mcat )
-      read
-      Box_Restore( mscr )
-      if updated()
-       if dbseek( mcat )
-        mscr:=Box_Save( 11, 08, 13, 72, C_GREY )
-        Center( 12, 'Name ÍÍÍ¯ ' + (mwork)->name )
-        Error( 'Code already on file',12 )
-        Box_Restore( mscr )
-
-       else
-        Add_rec( mwork )
-        ( mwork )->code := mcat
-         mscr:=Box_Save( 08, 01, 15, 72, C_GREEN )
-         Highlight( 09, 03, 'Code' , mcat )
-         @ 11,03 say '    Name' get (mwork)->name pict '@S40'
-         if mwork == 'MYOBCODE'
-          @ 12, 03 say 'GST Exempt' get (mwork)->GSTExempt pict 'Y'
-         endif
-         if mwork == 'PAYTYPE'
-          @ 12, 03 say 'MYOB Code' get (mwork)->MYOBCode pict '@!'
-         endif
-         read
+      else
+       Add_rec( mwork )
+       ( mwork )->code := mcat
+       mscr:=Box_Save( 08, 01, 15, 72, C_GREEN )
+       Highlight( 09, 03, 'Code' , mcat )
+       @ 11,03 say '    Name' get (mwork)->name pict '@S40'
+       read
 
 #ifdef SECURITY
-         if mwork == 'OPERATOR'
-          if substr( secmask, X_SUPERVISOR, 1 ) != SEC_CHAR
-           Error( 'You do not have supervisor equivalance You cannot setup users', 12 )
-           operator->name := ''  // Force system to delete login
-          else
-           Box_Restore( SetupSec() )
-          endif
-         endif
-#endif
-         Box_Restore( mscr )
-         if empty((mwork)->name) .or. empty((mwork)->code )
-          Error( 'Code or Name Empty - record deleted' , 12 )
-          Del_rec( mwork, UNLOCK )
-         endif
-         ( mwork )->( dbrunlock() )
+       if mwork == 'OPERATOR'
+        if substr( secmask, X_SUPERVISOR, 1 ) != SEC_CHAR
+         Error( 'You do not have supervisor equivalance You cannot setup users', 12 )
+         operator->name := ''  // Force system to delete login
+        else
+         Box_Restore( SetupSec() )
         endif
        endif
+#endif
+       Box_Restore( mscr )
+       if empty((mwork)->name) .or. empty((mwork)->code )
+        Error( 'Code or Name Empty - record deleted' , 12 )
+        Del_rec( mwork, UNLOCK )
+       endif
+       ( mwork )->( dbrunlock() )
       endif
-     dupbrow:refreshall()
-    endif
+      dupbrow:refreshall()
+     endif
+	endif
 
 #ifdef SECURITY
    case key = K_F8
@@ -1895,7 +1666,6 @@ if !found()
         oPrinter:NewLine()
         oPrinter:TextOut( operator->name )
         for x := 1 to len( operator->mask )
-//         LP( oprinter:setpos( 20 + ( x * 2 ) * oPrinter:CharWidth )
          LP( oprinter, if( substr( operator->mask, x, 1 ) = SEC_CHAR, 'X', ' ' ), 20 + (x*2), NONEWLINE )
 
         next

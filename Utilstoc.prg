@@ -9,7 +9,6 @@ Procedure UtilStock
 
 local level1 := Box_Save()
 local choice
-local mscan
 local printchoice
 local getlist := {}
 local aFlds
@@ -18,8 +17,6 @@ local sLoc, sID
 if !NetUse( 'assets' )
  return
 endif
-
-*
 
 while TRUE
  Box_Restore( level1 )
@@ -46,6 +43,7 @@ while TRUE
    while !assets->( eof() )
     Rec_lock()
     assets->prevLoc := assets->Location
+    assets->stoctake := FALSE
     assets->( dbrunlock() )
     assets->( dbskip() )
    enddo
@@ -53,43 +51,39 @@ while TRUE
 
  case choice = 3
   Heading('Stocktake Entry')
-  if Isready()
-   if !Sysinc( "FlagStk", "G" )       // SYSREC->FLAGSTK
-	Error( 'You MUST Prepare the stock file first!!', 12 )
+  if Isready( 10, 12, "Have you prepared the stocktake first" )
+   Box_Save( 2, 08, 6, 72 )
+   @ 5,10 say 'Asset Description                 Location'
+   sloc := ""
+   while TRUE
+ 	sID := space(10)
+    @ 03,10 say 'Scan/Enter asset ID or location' get sID pict '@!'
+    read
+    if !updated() 
+     exit
 
-   else
-    @ 2,08 clear to 6,72
-    @ 5,10 say 'Asset Description                 Location'
-    sloc := ""
-    while TRUE
- 	 sID := space(10)
-     @ 03,10 say 'Scan barcode or enter asset ID' get sID pict '@!'
-     read
-     if !updated() 
-      exit
-
-     else
-	  if location->( dbseek( sID ) )
-	   sLoc = sID
-	   warning( "Location set to " + trim( location->desc ) )
-	   loop
+    else
+	 if location->( dbseek( sID ) )
+	  sLoc = sID
+	  warning( "Location set to " + trim( location->desc ) )
+	  loop
       
-	  endif	   
+	 endif	   
 	  
-	  if sLoc = ""
-	   Warning( "Scan/Enter a valid location before commencing asset scans" )
+	 if sLoc = ""
+	  Warning( "Scan/Enter a valid location before commencing asset scans" )
 	
-	  else 
-	   if !asset->( dbseek( sID ) )
-	    Error( 'Asset ID not found', 12, .5 )
-	    tone( lvars( L_BAD ), 5 )
+	 else 
+	  if !asset->( dbseek( sID ) )
+	   Error( 'Asset ID not found', 12, .5 )
+	   tone( lvars( L_BAD ), 5 )
 
-	   else
-	    tone( lvars( L_GOOD ), 5 )
-        Rec_lock( 'assets' )
-        assets->location = sLocation
-    
-       endif
+	  else
+	   tone( lvars( L_GOOD ), 5 )
+       Rec_lock( 'assets' )
+       assets->location = sLoc
+       assets->stocktake = TRUE
+
       endif
      endif
 
@@ -98,8 +92,8 @@ while TRUE
      @ 6,09 say left( asset->desc, 30 )
      @ 6,45 say left( location->desc, 20 )
 
-	enddo
-   endif
+	endif
+   enddo
   endif
 
  case choice = 4
@@ -108,8 +102,8 @@ while TRUE
   Box_Save( 05, 34, 10, 46 )
   @ 06,35 prompt 'Exit      ' message Line_clear(24)+'Return to Stocktake Menu'
   @ 07,35 prompt ' All assets' message Line_clear(24)+'All assets in Stocktake'
-  @ 08,35 prompt ' Not found' message Line_clear(24)+'assets Not found in Location'
-  @ 09,35 prompt ' Incorrect' message Line_clear(24)+'assets in Incorrect Location'
+  @ 08,35 prompt '  Not found' message Line_clear(24)+'assets Not found in Location'
+  @ 09,35 prompt '  Incorrect' message Line_clear(24)+'assets in Incorrect Location'
   @ 05,35 say 'Reports'
   menu to printchoice
 
@@ -117,20 +111,20 @@ while TRUE
 
   do case
   case printchoice = 2
-   Heading("Print all Assets found during Stocktake")
+   Heading("Print all Assets found during Stocktake by Location")
    if Isready()
     Box_Save( 12, 20, 14, 60 )
+    assets->( ordsetFocus( 'location' ) )
     @ 13,21 say '-=< Processing - Please Wait >=-'
 
     aFlds := {}
-    aadd( aflds, { 'assets->id', 'Item;Code', 10, 0, FALSE } )
+    aadd( aflds, { 'assets->code', 'Item;Code', ASSET_CODE_LEN, 0, FALSE } )
     aadd( aflds, { 'assets->serial', 'Serial No', 10, 0, FALSE } )
     aadd( aflds, { 'assets->desc', 'Description', 20, 0, FALSE } )
 
-
     Reporter( aFlds, ;
             'Complete List Stocktake assets',;
-            '',;
+            'location',;
             '',;
             '',;
             '',;
@@ -150,20 +144,19 @@ while TRUE
     @ 13,21 say '-=< Processing - Please Wait >=-'
 
 	aFlds := {}
-    aadd( aflds, { 'assets->item_code', 'Item;Code', 10, 0, FALSE } )
+    aadd( aflds, { 'assets->code', 'Asset;Code', 10, 0, FALSE } )
     aadd( aflds, { 'assets->serial', 'Serial No', 10, 0, FALSE } )
     aadd( aflds, { 'assets->desc', 'Description', 20, 0, FALSE } )
 
-
     Reporter( aFlds, ;
               'List of assets not found in Stocktake',;
-              '',;
+              'location',;
               '',;
               '',;
               '',;
               FALSE,;
               '',;
-              '!assets->stocktake .and. assets->status ="O"',;
+              '!assets->stocktake',;
               132 ;
             )
 
@@ -177,20 +170,19 @@ while TRUE
     @ 13,21 say '-=< Processing - Please Wait >=-'
     
     aFlds := {}
-    aadd( aflds, { 'assets->id', 'Asset;ID', 10, 0, FALSE } )
+    aadd( aflds, { 'assets->code', 'Asset;Code', 10, 0, FALSE } )
     aadd( aflds, { 'assets->serial', 'Serial No', 10, 0, FALSE } )
     aadd( aflds, { 'assets->desc', 'Description', 20, 0, FALSE } )
 
-
     Reporter( aFlds, ;
             'List of assets found Incorrectly in Stocktake',;
-            '',;
+            'location',;
             '',;
             '',;
             '',;
             FALSE,;
             '',;
-            'assets->stocktake .and. assets->status != "O"',;
+            'assets->stocktake .and. assets->prevLoc <> assets->location',;
               132 ;
             )
 

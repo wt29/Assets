@@ -1,6 +1,6 @@
 /*
 
-        PrintFunc.prg
+      PrintFunc.prg
 
       Last change:  TG   14 Mar 2011    2:40 pm
 */
@@ -18,49 +18,13 @@ static sc_row
 static nDefPrinterCharWidth  // Set in Create Printer
 
 function print_find ( sPTRMain )
-local mret:=FALSE
 
-sPTRMain = lower( sPTRMAIN )
+set( _SET_PRINTFILE, FALSE )
+set printer to ( GetDefaultPrinter() )
+LVars( L_PRINTER, getDefaultPrinter() )
 
-do case
-Case sPTRMain = "report"
- if !PrinterExists( trim( LVars( L_REPORT_NAME ) ) )
-#ifndef RENTACENTRE
-  Alert( "Report Printer " + trim( LVars( L_REPORT_NAME ) ) + " not installed on this machine" )
-#endif
-  set printer to ( GetDefaultPrinter() )
-  LVars( L_PRINTER, getDefaultPrinter() )
 
- else
-  set printer to ( trim( LVars( L_REPORT_NAME ) ) )
-  LVars( L_PRINTER, trim( LVars( L_REPORT_NAME ) ) )
-
- endif
-
-Case sPTRMain = "letter"
- if !PrinterExists( trim( LVars( L_LETTER_NAME ) ) )
-#ifndef RENTACENTRE
-  Alert( "Letter Printer " + trim( LVars( L_LETTER_NAME ) ) + " not installed on this machine" )
-#endif
-  set printer to ( GetDefaultPrinter() )
-  LVars( L_PRINTER, getDefaultPrinter() )
-
- else
-  set printer to ( trim( LVars( L_LETTER_NAME ) ) )
-  LVars( L_PRINTER, trim( LVars( L_LETTER_NAME ) ) )
-
- endif
-
-otherwise
- set( _SET_PRINTFILE, FALSE )
- set printer to ( GetDefaultPrinter() )
- LVars( L_PRINTER, getDefaultPrinter() )
-
-EndCase
-
-return mret                  // Have we found the required printer
-
-*
+return TRUE            // Have we found the required printe
 
 // Saves having to issue newline, setpos, textout for every line
 
@@ -153,7 +117,7 @@ if empty( cOtherPrinter )
 
 endif
 
-Print_find( cOtherPrinter )
+Print_find( cOtherPrinter )  // this just finds the default
 
 // WvW_SBSetText( 0, 0 , 'Printing to ' + LVars( L_PRINTER ) )
 
