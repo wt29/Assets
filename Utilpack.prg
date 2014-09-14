@@ -39,6 +39,7 @@ if goforit .or. Isready( )
 
   if !file( Oddvars( SYSPATH ) + 'assets' + indexext() ) .or. must_index
    indx( 'code', 'code' )
+   indx( 'desc', 'description' )
    indx( 'serial', 'serial' )
    indx( 'model', 'model' )
    indx( 'location', 'location' )

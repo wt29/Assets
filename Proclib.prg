@@ -173,7 +173,7 @@ return
 
 *
 
-Function Con_Find
+Function AssetFind
 local cf := Box_Save()
 local got_it := FALSE
 local t_flag:=FALSE
@@ -181,19 +181,18 @@ local mident
 local getlist := {}
 local enqobj
 local mkey
-local mContractNum := 0
-local mbysuburb := FALSE
-local mbyphone := FALSE
-local mbyaddress := FALSE
-local mByMobile := FALSE
+local mAssetNum := ""
+local mbyDescription := FALSE
+local mBySerial := FALSE
+local mByModel := FALSE
 
-Heading('Contract Find')
+Heading('Asset Find')
 
 while TRUE
- mident := space( 10 )
+ mident := space( ASSET_CODE_LEN )
 
  Box_Save( 4, 01, 6, 78, C_GREY )
- @ 5, 02 say 'Contract No,Surname,*Deposit Book,/Address,+Suburb,-Phone,?Mobile' get mident pict '@!'
+ @ 5, 02 say 'Asset No,*Description,/Serial No,+Model' get mident pict '@!'
  Syscolor( C_NORMAL )
  read
 
@@ -202,94 +201,61 @@ while TRUE
 
  else
 
-  mBySuburb := ( left( mident, 1 ) = '+' )
-  mByPhone := ( left(mident, 1 ) = '-' )
-  mByAddress := ( left( mident, 1 ) = '/' )
-  mByMobile := ( left( mident, 1 ) = '?' )
+  mByDescription := ( left( mident, 1 ) = '*' )
+  mByModel := ( left( mident, 1 ) = '+' )
+  mBySerial := ( left( mident, 1 ) = '/' )
 
   do case
-  case left( mident, 1 ) = '*'
-   mident := substr( mident, 2, len( trim( mident ) ) -1 )
-   master->( ordsetfocus( 'deposit' ) )
-   if !master->( dbseek( mident ) )
-    Error( 'Deposit book No not on file', 12 )
-    master->( ordsetfocus( 'contract' ) )
-    loop
-   else
-    master->( ordsetfocus( 'contract' ) )
-    mContractNum := master->con_no
-   endif
-
-  case mbyphone .or. mbysuburb .or. mbyaddress .or. mByMobile .or. ( asc( left( mident, 1 ) ) > 64 .and. asc( left( mident, 1 ) ) < 123 )
-
+  
+  case mbyDescription .or. mByModel .or. mBySerial .or. ( asc( left( mident, 1 ) ) > 64 .and. asc( left( mident, 1 ) ) < 123 )
    t_flag := TRUE
-   select hirer
 
-   hirer->( ordsetfocus( if( mbysuburb, 'suburb', ;
-                         if( mByPhone, 'phone', ;
-                         if( mByMobile, 'mobile', ;
-                         if( mByAddress, 'address', 'surname' ) ) ) ) ) )
+   asset->( ordsetfocus( if( mbyDescription, 'description', if( mByModel, 'model', 'serial' ) ) ) )
 
    mident := upper( trim( mident ) )
 
-   if mbysuburb .or. mbyphone .or. mbyaddress .or. mByMobile
+   if mbyDescription .or. mbyModel .or. mbySerial
     mident := substr( mident, 2, len( mident ) - 1 )
 
    endif
 
-   if !hirer->( dbseek( mident ) )
-    Error( 'No ' + if( mbysuburb, 'suburb', ;
-                   if( mbyphone, 'phone', ;
-                   if( mByMobile, 'mobile', ;
-                   if( mbyaddress, 'address', 'surname' ) ) ) ) + ' match on file' , 12 )
-    hirer->( ordsetfocus( 'contract' ) )
-    loop
+   if !asset->( dbseek( mident ) )
+    Error( 'No ' + if( mbyDescription, 'description', ;
+                   if( mByModel, 'model', 'serial' ) ) + ' match on file' , 12 )
+    asset->( ordsetfocus( 'code' ) )
+   else
+   
+   asset->( dbskip( 1 ) )
+   if left( if( mbyDescription, upper( asset->desc ), ;
+            if( mbyModel, upper( asset->model ), upper( asset->serial ) ) ), len( mident ) ) != mident
 
-   endif
-
-   hirer->( dbskip( 1 ) )
-   if left( if( mbysuburb, upper( hirer->suburb ), ;
-            if( mbyphone, upper( hirer->tele_priv ), ;
-            if( mbyaddress, upper( hirer->add1 ), ;
-            if( mbyMobile, upper( hirer->tele_mob ), ;
-                upper( hirer->surname ) ) ) ) ), len( mident ) ) != mident
-
-    hirer->( dbskip( -1 ) )
-    mContractNum := hirer->con_no
-    hirer->( ordsetfocus( 'contract' ) )
+    asset->( dbskip( -1 ) )
+    mAssetNum := asset->code
+    asset->( ordsetfocus( 'code' ) )
 
    else
-    hirer->( dbskip( -1 ) )
+    asset->( dbskip( -1 ) )
 
     Box_Save( 2, 02, 22, 78 )
-    Heading('Contract no find')
+    Heading('Asset no find')
     enqobj:=tbrowse():new( 03, 03, 21, 77 )
     enqobj:colorspec := if( iscolor(), TB_COLOR, setcolor() )
     enqobj:HeadSep := HEADSEP
     enqobj:ColSep := COLSEP
     enqobj:goTopBlock := { || jumptotop( mident ) }
-    enqobj:goBottomBlock := { || jumptobott( mident, 'hirer' ) }
-#ifdef SQL
-    bBlock := { || upper( left( hirer->surname, len( mident ) ) ) }
-    enqobj:skipBlock := { |SkipCnt| AwSkipIt( SkipCnt, bBlock, mident ) }
-
-#else
+    enqobj:goBottomBlock := { || jumptobott( mident, 'asset' ) }
     enqobj:skipBlock := { | SkipCnt | AwSkipIt( SkipCnt, ;
-    { || upper( left( if( mbysuburb, hirer->suburb, ;
-                      if( mbyphone, hirer->tele_priv, ;
-                      if( mbyaddress, hirer->add1, ;
-                      if( mbyMobile, hirer->tele_mob, ;
-                      hirer->surname ) ) ) ), len( mident ) )  ) }, mident ) }
+						{ || upper( left( if( mbyDescription, asset->desc, ;
+							              if( mbyModel, asset->model, asset->serial ) ) );
+							 , len( mident ) ) ) }, mident ) }
 
-#endif
-    enqobj:addColumn( tbcolumnnew( 'Contract', { || hirer->con_no } ) )
-    enqobj:addcolumn( tbcolumnNew( 'S', { || StatusLookup( hirer->con_no ) } ) )
-    enqobj:addcolumn( tbcolumnNew( 'Surname', { || hirer->surname } ) )
-    enqobj:addcolumn( tbcolumnNew( 'Address', { || hirer->add1 } ) )
-    enqobj:addcolumn( tbcolumnNew( 'Suburb', { || hirer->suburb } ) )
-    enqobj:addcolumn( tbcolumnNew( 'Phone', { || hirer->tele_priv } ) )
-    enqobj:addcolumn( tbcolumnNew( 'First Name', { || hirer->first } ) )
-    enqobj:addcolumn( tbcolumnNew( 'Mobile', { || hirer->tele_mob } ) )
+	enqobj:addColumn( tbcolumnnew( 'Asset', { || asset->code } ) )
+ //   enqobj:addcolumn( tbcolumnNew( 'Status', { || LookItUp( hirer->con_no ) } ) )
+    enqobj:addcolumn( tbcolumnNew( 'Description', { || asset->surname } ) )
+    enqobj:addcolumn( tbcolumnNew( 'Model', { || asset->model } ) )
+    enqobj:addcolumn( tbcolumnNew( 'Serial', { || asset->Serial } ) )
+    enqobj:addcolumn( tbcolumnNew( 'Location', { || asset->location } ) )
+    enqobj:addcolumn( tbcolumnNew( 'Status', { || asset->status } ) )
     enqobj:freeze := 3
     mkey := 0
     while mkey != K_ESC
@@ -300,8 +266,8 @@ while TRUE
      if !Navigate( enqobj, mkey )
 
       if mkey = K_ENTER .or. mkey == K_LDBLCLK
-       mContractNum :=  hirer->con_no
-       hirer->( ordsetfocus( 'contract' ) )
+       mAssetNum :=  asset->code
+       asset->( ordsetfocus( 'code' ) )
        exit
       endif
 
@@ -310,9 +276,9 @@ while TRUE
     enddo
 
    endif
-
+   endif
   otherwise
-   mContractNum := val( mident )
+   mAssetNum := val( mident )
 
   endcase
 
@@ -321,34 +287,28 @@ while TRUE
  select master
 
  if lastkey() != K_ESC
-  if mContractNum = 0
-   Error( 'You cannot use "0" as contract Number' , 12 )
+  asset->( ordsetfocus( 'code' ) )
+  if !master->( dbseek( mAssetNum ) )
+   Error( 'Asset #' + Ns( mAssetNum ) + ' not found', 12 )
 
   else
-   master->( ordsetfocus( 'contract' ) )
-   if !master->( dbseek( mContractNum ) )
-    Error( 'Contract #' + Ns( mContractNum ) + ' not found', 12 )
 
-   else
-
-    if t_flag
-     hirer->( ordsetfocus( 'contract' ) )
-     hirer->( dbseek( mContractNum ) )
-     select master
-    endif
-
-    Oddvars( LASTCONT, Ns( mContractNum ) )
-    got_it := TRUE
-    exit
-
+   if t_flag
+    asset->( ordsetfocus( 'code' ) )
+    asset->( dbseek( mAssetNum ) )
+    select asset
    endif
 
- endif
+//   Oddvars( LASTCONT, Ns( mAssetNum ) )
+   got_it := TRUE
+   exit
+
+  endif
 
  endif
 
 enddo
-Oddvars( CONTRACT, mContractNum )
+// Oddvars( CONTRACT, mContractNum )
 Box_Restore( cf )
 return got_it
 
