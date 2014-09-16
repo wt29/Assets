@@ -31,51 +31,12 @@ endif
 Heading( 'Enquire on Asset' )
 
 while loopval
- sCode = space(10)
- Box_Save( 02, 08, 4, 72 )
-  @ 03, 10 say 'Enter Asset No or / for Description to Enquire' get sCode pict '@!'
- read
- if !updated()
+ if !AssetFind()
   loopval := FALSE
 
  else
-  assets->( dbseek( sCode ) )
-  if assets->( eof() )
-   Error( 'No assets found', 12 )
-
-  else 
-   Heading('Asset Inquiry' )
-   select assets
-   enqobj:=tbrowsedb( 01, 00, 24, 79 )
-   enqobj:colorspec := if( iscolor(), TB_COLOR, setcolor() )
-   enqobj:HeadSep := HEADSEP
-   enqobj:ColSep := COLSEP
-   enqobj:goTopBlock := { || jumptotop( sCode ) }
-   enqobj:goBottomBlock := { || jumptobott( sCode ) }
-   enqobj:skipBlock:={ | SkipCnt | AwSkipIt( SkipCnt, { || assets->code },sCode )}
-   enqobj:addcolumn( tbcolumnNew( 'Asset Code', { || assets->code } ) )
-   enqobj:addcolumn( tbcolumnNew( 'Description', { || left( assets->desc, 30 ) } ) )
-   enqobj:addcolumn( tbcolumnNew( 'Model', { || left( assets->model, 20 ) } ) )
-   enqobj:addcolumn( tbcolumnNew( 'Serial', { || assets->serial } ) )
-   enqobj:freeze := 1
-   mkey := 0
-
-   while mkey != K_ESC .and. mkey != K_RDBLCLK
-    enqobj:forcestable()
-    mkey := inkey(0)
-
-    if !Navigate( enqobj, mkey )
-     if mkey == K_ENTER .or. mkey == K_LDBLCLK
-      assetForm( TRUE )
-
-     endif 
-
-    endif
-
-   enddo
-
-  endif
-
+  assetForm( TRUE )
+ 
  endif
 
 enddo 
@@ -83,7 +44,7 @@ enddo
 close databases
 
 Box_Restore( mscr )
-return nil
+return 
 
 /*
 

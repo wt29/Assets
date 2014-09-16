@@ -172,6 +172,7 @@ while TRUE
  nMMChoice := 1
  @ 03, 01 prompt ' Enquiry ' message line_clear( 24 ) + 'Enquiries on Assets'
  @ 03, 12 prompt '  File   ' message line_clear( 24 ) + 'Maintain your Asset File'
+ @ 03, 24 prompt ' Reports ' message line_clear( 24 ) + 'Reports'
  @ 03, 36 prompt 'Stocktake' message line_clear( 24 ) + 'Do an Asset Stocktake'
  @ 03, 60 prompt 'Utilities' message line_clear( 24 ) + 'Housekeeping'
  @ 03, 71 prompt '  Quit  ' message line_clear( 24 ) + 'Exit from ' + SYSNAME
@@ -180,9 +181,7 @@ while TRUE
  aMenuScr := Box_Save()
 
  while TRUE
-
   Box_Restore( aMenuScr )
-
   do case
   case nMMChoice = 1 .and. Secure( X_ENQUIRE )
    EnqAsset()
@@ -209,7 +208,7 @@ while TRUE
    Heading('File Maintenance')
    aMenu := {}
    aadd( aMenu, { 'Main', 'Return to top line options' } )
-   aadd( aMenu, { 'Assets', 'Contract file maintenance', { || MainAsset() } } )
+   aadd( aMenu, { 'Assets', 'Asset file maintenance', { || MainAsset() } } )
    aadd( aMenu, { 'Owner', 'Modify owner details', { || MainOwne() } } )
    nMenuChoice := MenuGen( aMenu, 1, 12, 'File', , , ,@nSelRow )
 
@@ -220,10 +219,28 @@ while TRUE
     Eval( aMenu[ nMenuChoice, 3 ] )
 
    endif
-  case nMMChoice = 3 .and. Secure( X_STOCKTAKE )
-   UtilStock()
 
-   case nMMChoice = 4 .and. Secure( X_UTILITY )
+  case nMMChoice = 3 .and. Secure( X_FILE )
+   Heading('Reports Menu')
+   aMenu := {}
+   aadd( aMenu, { 'Main', 'Return to top line options' } )
+   aadd( aMenu, { 'Assets', 'Asset File Reports', { || MainAsset() } } )
+   aadd( aMenu, { 'Owner', 'List of Oeners', { || MainOwne() } } )
+   nMenuChoice := MenuGen( aMenu, 1, 24, 'Reports', , , ,@nSelRow )
+
+   if nMenuChoice < 2
+    exit
+
+   else
+    Eval( aMenu[ nMenuChoice, 3 ] )
+
+   endif
+
+  case nMMChoice = 4 .and. Secure( X_STOCKTAKE )
+   UtilStock()
+   exit
+   
+  case nMMChoice = 5 .and. Secure( X_UTILITY )
    Heading('Utility Menu')
    aMenu := {}
    aadd( aMenu, { 'Main', 'Return to top line options' } )

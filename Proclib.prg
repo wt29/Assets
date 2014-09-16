@@ -177,22 +177,20 @@ Function AssetFind
 local cf := Box_Save()
 local got_it := FALSE
 local t_flag:=FALSE
-local mident
+local sIdent
 local getlist := {}
 local enqobj
 local mkey
 local mAssetNum := ""
-local mbyDescription := FALSE
-local mBySerial := FALSE
-local mByModel := FALSE
+local mbyDescription 
+local mBySerial 
+local mByModel 
 
 Heading('Asset Find')
-
 while TRUE
- mident := space( ASSET_CODE_LEN )
-
- Box_Save( 4, 01, 6, 78, C_GREY )
- @ 5, 02 say 'Asset No,*Description,/Serial No,+Model' get mident pict '@!'
+ sIdent := space( ASSET_CODE_LEN )
+ Box_Save( 4, 11, 6, 64, C_GREY )
+ @ 5, 13 say 'Asset No,*Description,/Serial No,+Model' get sIdent pict '@!'
  Syscolor( C_NORMAL )
  read
 
@@ -200,115 +198,83 @@ while TRUE
   exit
 
  else
-
-  mByDescription := ( left( mident, 1 ) = '*' )
-  mByModel := ( left( mident, 1 ) = '+' )
-  mBySerial := ( left( mident, 1 ) = '/' )
+  mByDescription := ( left( sIdent, 1 ) = '*' )
+  mByModel := ( left( sIdent, 1 ) = '+' )
+  mBySerial := ( left( sIdent, 1 ) = '/' )
 
   do case
-  
-  case mbyDescription .or. mByModel .or. mBySerial .or. ( asc( left( mident, 1 ) ) > 64 .and. asc( left( mident, 1 ) ) < 123 )
+  case mbyDescription .or. mByModel .or. mBySerial // .or. ( asc( left( sIdent, 1 ) ) > 64 .and. asc( left( sIdent, 1 ) ) < 123 )
    t_flag := TRUE
+   assets->( ordsetfocus( if( mbyDescription, 'description', if( mByModel, 'model', 'serial' ) ) ) )
+   sIdent := upper( trim( substr( sIdent, 2, len( sIdent ) - 1 ) ) )
 
-   asset->( ordsetfocus( if( mbyDescription, 'description', if( mByModel, 'model', 'serial' ) ) ) )
-
-   mident := upper( trim( mident ) )
-
-   if mbyDescription .or. mbyModel .or. mbySerial
-    mident := substr( mident, 2, len( mident ) - 1 )
-
-   endif
-
-   if !asset->( dbseek( mident ) )
-    Error( 'No ' + if( mbyDescription, 'description', ;
-                   if( mByModel, 'model', 'serial' ) ) + ' match on file' , 12 )
-    asset->( ordsetfocus( 'code' ) )
-   else
+   if !assets->( dbseek( sIdent ) )
+    Error( 'No ' + if( mbyDescription, 'Description', if( mByModel, 'Model', 'Serial' ) ) + ' match on file' , 12 )
+    assets->( ordsetfocus( 'code' ) )
    
-   asset->( dbskip( 1 ) )
-   if left( if( mbyDescription, upper( asset->desc ), ;
-            if( mbyModel, upper( asset->model ), upper( asset->serial ) ) ), len( mident ) ) != mident
-
-    asset->( dbskip( -1 ) )
-    mAssetNum := asset->code
-    asset->( ordsetfocus( 'code' ) )
-
    else
-    asset->( dbskip( -1 ) )
+    assets->( dbskip( 1 ) )
+    if left( if( mbyDescription, upper( assets->desc ), ;
+             if( mbyModel, upper( assets->model ), upper( assets->serial ) ) ), len( sIdent ) ) != sIdent
+     assets->( dbskip( -1 ) )
+     mAssetNum := assets->code
+     assets->( ordsetfocus( 'code' ) )
 
-    Box_Save( 2, 02, 22, 78 )
-    Heading('Asset no find')
-    enqobj:=tbrowse():new( 03, 03, 21, 77 )
-    enqobj:colorspec := if( iscolor(), TB_COLOR, setcolor() )
-    enqobj:HeadSep := HEADSEP
-    enqobj:ColSep := COLSEP
-    enqobj:goTopBlock := { || jumptotop( mident ) }
-    enqobj:goBottomBlock := { || jumptobott( mident, 'asset' ) }
-    enqobj:skipBlock := { | SkipCnt | AwSkipIt( SkipCnt, ;
-						{ || upper( left( if( mbyDescription, asset->desc, ;
-							              if( mbyModel, asset->model, asset->serial ) ) );
-							 , len( mident ) ) ) }, mident ) }
+    else
+     assets->( dbskip( -1 ) )
+     Box_Save( 2, 02, 22, 78 )
+     Heading('Asset no find')
+     enqobj:=tbrowse():new( 03, 03, 21, 77 )
+     enqobj:colorspec := if( iscolor(), TB_COLOR, setcolor() )
+     enqobj:HeadSep := HEADSEP
+     enqobj:ColSep := COLSEP
+     enqobj:goTopBlock := { || jumptotop( sIdent ) }
+     enqobj:goBottomBlock := { || jumptobott( sIdent, 'asset' ) }
+     enqobj:skipBlock := { | SkipCnt | AwSkipIt( SkipCnt,{ ;
+	        upper(left(if(mbyDescription,assets->desc,if(mbyModel,assets->model,assets->serial)),len( sIdent ) ) ) }, sIdent ) }
+     enqobj:addColumn( tbcolumnnew( 'Asset', { || assets->code } ) )
+     enqobj:addcolumn( tbcolumnNew( 'Description', { || assets->desc } ) )
+     enqobj:addcolumn( tbcolumnNew( 'Model', { || assets->model } ) )
+     enqobj:addcolumn( tbcolumnNew( 'Serial', { || assets->Serial } ) )
+     enqobj:addcolumn( tbcolumnNew( 'Location', { || assets->location } ) )
+     enqobj:addcolumn( tbcolumnNew( 'Status', { || assets->status } ) )
+     enqobj:freeze := 3
+     mkey := 0
+     while mkey != K_ESC
+      enqobj:forcestable()
+      mkey := inkey(0)
 
-	enqobj:addColumn( tbcolumnnew( 'Asset', { || asset->code } ) )
- //   enqobj:addcolumn( tbcolumnNew( 'Status', { || LookItUp( hirer->con_no ) } ) )
-    enqobj:addcolumn( tbcolumnNew( 'Description', { || asset->surname } ) )
-    enqobj:addcolumn( tbcolumnNew( 'Model', { || asset->model } ) )
-    enqobj:addcolumn( tbcolumnNew( 'Serial', { || asset->Serial } ) )
-    enqobj:addcolumn( tbcolumnNew( 'Location', { || asset->location } ) )
-    enqobj:addcolumn( tbcolumnNew( 'Status', { || asset->status } ) )
-    enqobj:freeze := 3
-    mkey := 0
-    while mkey != K_ESC
+      if !Navigate( enqobj, mkey )
+       if mkey = K_ENTER .or. mkey == K_LDBLCLK
+        mAssetNum := assets->code
+        assets->( ordsetfocus( 'code' ) )
+        exit
 
-     enqobj:forcestable()
-     mkey := inkey(0)
-
-     if !Navigate( enqobj, mkey )
-
-      if mkey = K_ENTER .or. mkey == K_LDBLCLK
-       mAssetNum :=  asset->code
-       asset->( ordsetfocus( 'code' ) )
-       exit
+       endif
       endif
-
-     endif
-
-    enddo
-
-   endif
+     enddo
+    endif
    endif
   otherwise
-   mAssetNum := val( mident )
+   mAssetNum := sIdent
 
   endcase
 
  endif
 
- select master
-
+ select assets
  if lastkey() != K_ESC
-  asset->( ordsetfocus( 'code' ) )
-  if !master->( dbseek( mAssetNum ) )
+  assets->( ordsetfocus( 'code' ) )
+  if !assets->( dbseek( mAssetNum ) )
    Error( 'Asset #' + Ns( mAssetNum ) + ' not found', 12 )
 
   else
-
-   if t_flag
-    asset->( ordsetfocus( 'code' ) )
-    asset->( dbseek( mAssetNum ) )
-    select asset
-   endif
-
-//   Oddvars( LASTCONT, Ns( mAssetNum ) )
    got_it := TRUE
    exit
 
   endif
-
  endif
-
 enddo
-// Oddvars( CONTRACT, mContractNum )
 Box_Restore( cf )
 return got_it
 
