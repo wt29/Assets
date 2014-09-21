@@ -30,14 +30,8 @@ endif
 
 Heading( 'Enquire on Asset' )
 
-while loopval
- if !AssetFind()
-  loopval := FALSE
-
- else
-  assetForm( TRUE )
- 
- endif
+while AssetFind()
+ AssetForm( TRUE )
 
 enddo 
 

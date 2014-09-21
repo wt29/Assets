@@ -239,7 +239,7 @@ while TRUE
   case nMMChoice = 4 .and. Secure( X_STOCKTAKE )
    UtilStock()
    exit
-   
+
   case nMMChoice = 5 .and. Secure( X_UTILITY )
    Heading('Utility Menu')
    aMenu := {}
