@@ -39,9 +39,9 @@ if goforit .or. Isready( )
 
   if !file( Oddvars( SYSPATH ) + 'assets' + indexext() ) .or. must_index
    indx( 'code', 'code' )
-   indx( 'desc', 'description' )
-   indx( 'serial', 'serial' )
-   indx( 'model', 'model' )
+   indx( 'upper( desc )', 'desc' )
+   indx( 'upper( serial )', 'serial' )
+   indx( 'upper( model )', 'model' )
    indx( 'location', 'location' )
 
   else
@@ -116,7 +116,7 @@ if goforit .or. Isready( )
 
  dbcloseall()
 
- finish_time := seconds()
+ finish_time := seconds()  
  if finish_time < start_time
   elapsed := ( 86399-finish_time ) + start_time
 
@@ -124,19 +124,13 @@ if goforit .or. Isready( )
   elapsed := finish_time-start_time
 
  endif
- if elapsed > 60
-  ?
-  ? "Time for " + packindx + " = " + str( elapsed / 60, 2 ) + " minutes " + ;
-     str( elapsed % 60, 2 )+" seconds"
+ ?
+ ? "Time for " + packindx + " = " +  if( elapsed > 60 , str( elapsed / 60, 2 ) + " minutes ", "" ) + ;
+       str( elapsed % 60, 2 )  + " seconds"
 
- else
-  ?
-  ? "Time for " + packindx + " = " + str( elapsed % 60 , 2 ) + " seconds"
-
- endif
  Error("")
 
- endif
+endif
 
 return nil
 

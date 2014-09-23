@@ -27,8 +27,12 @@ local sFile
 local oPrinter
 #endif
 
+#ifdef GTWVW
 local lMainCoord := WVW_SetMainCoord( .t. )
 WVW_SetCodePage(,255)
+#else
+setmode( 25, 80 )
+#endif
         
 parameter sCmdParams
 
@@ -130,7 +134,7 @@ endif
 setkey( K_SH_F1, { || Print_swap() } )
 // setkey( K_F2, { || StuffLastItem() } )
 // setkey( K_F3, { || StuffLastCont() } )
-setkey( K_F5, { || Free_enq() } )
+// setkey( K_F5, { || Free_enq() } )
 // setkey( K_F6, { || Calendar() } )
 setkey( K_CTRL_F5, { || ShowCallStack() } )
 setkey( K_CTRL_P, { || Print_screen() } )
@@ -262,7 +266,7 @@ while TRUE
 
    endif
 
-  case nMMChoice = 5 .or. nMMChoice = 0
+  case nMMChoice = 6 .or. nMMChoice = 0
    Appquit( )
    exit
 

@@ -53,16 +53,19 @@ return
 Procedure Sysdata
 local oWindow
 
- oWindow := WvW_nOpenWindow( "System Information",0, 0, 06, 60 )
- WvW_SBCreate( oWindow )
- WvW_SBSetText( oWindow, 0 , "System Info" )
+#ifdef GTWVW
+oWindow := WvW_nOpenWindow( "System Information",0, 0, 06, 60 )
+WvW_SBCreate( oWindow )
+WvW_SBSetText( oWindow, 0 , "System Info" )
+#else
  // wvw_SetFont("Arial",17,10)
 //      :SetTitle( "Editar Datos del Equipo" )
 //      :SetStatusBar( "WvwGetsys Demo!" )
 //      :SetFont( "Courier New" )
 //      :Create()
    
-//local cScr := Box_Save( 2, 05, 10, 76 )
+local cScr := Box_Save( 2, 05, 10, 76 )
+#endif
 Highlight( 00, 00, 'OS', os() )
 Highlight( 01, 00, 'RDD', rddsetdefault() )
 Highlight( 02, 00, 'Index Ext', ordbagext() )
@@ -77,8 +80,11 @@ Highlight( 07, 00, '', '' )
 inkey(0)
 
 //
-   WVW_lCloseWindow()
-//Box_Restore( cScr )
+#ifdef GTWVW
+WVW_lCloseWindow()
+#else
+Box_Restore( cScr )
+#endif
 return
 
 *

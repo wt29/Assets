@@ -203,7 +203,7 @@ while cchoice != 'A'
 
  endif
  aadd( cchoices, { 'Print', 'Print these details for sending to ' + DEVELOPER } )
- aadd( cchoices, { 'Quit', 'Exit from ' + SYSNAME } )
+ aadd( cchoices, { 'Abort', 'Exit from ' + SYSNAME } )
  nchoice := MenuGen( cchoices, 12, 62, 'Select' )
 
  set( _SET_INTENSITY , nIntense )
