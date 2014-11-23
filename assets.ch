@@ -14,6 +14,7 @@ Version History
 #include "inkey.ch"
 #include "dbinfo.ch"
 #include "tbrowse.ch"
+#include "set.ch"
 
 #define BUILD_NO "1.01"
 #define BUILD_DATE "September 2014"

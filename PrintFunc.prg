@@ -19,6 +19,7 @@ static nDefPrinterCharWidth  // Set in Create Printer
 
 function print_find ( sPTRMain )
 
+
 set( _SET_PRINTFILE, FALSE )
 set printer to ( GetDefaultPrinter() )
 LVars( L_PRINTER, getDefaultPrinter() )
@@ -704,7 +705,7 @@ if !toScreen
  oPrinter:TextOut( replicate( chr( '=' ), oPrinter:maxcol() ) )
 
 else
- oPrinter:Write( replicate( chr( "=" ), nTotWidth ) )
+ oPrinter:Write( replicate( "=" , nTotWidth ) )
 
 endif
 

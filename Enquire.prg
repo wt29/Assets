@@ -7,6 +7,7 @@
  
 #include "assets.ch"
 
+
 Procedure EnqAsset
 
 local mscr := Box_Save()
@@ -50,8 +51,8 @@ local lByModel
 Heading('Asset Find')
 while TRUE
  sIdent := space( ASSET_CODE_LEN )
- Box_Save( 4, 11, 6, 64, C_GREY )
- @ 5, 13 say 'Asset No,/Description,.Serial No,;Model' get sIdent pict '@!'
+ Box_Save( 4, 08, 6, 72, C_GREY )
+ @ 5, 10 say 'Asset No,/Description,.Serial No,;Model,\Location' get sIdent pict '@!'
  Syscolor( C_NORMAL )
  read
 
@@ -62,19 +63,22 @@ while TRUE
   lByDesc := ( left( sIdent, 1 ) = '/' )
   lByModel := ( left( sIdent, 1 ) = '.' )
   lBySerial := ( left( sIdent, 1 ) = ';' )
+  lByLocation := ( left( sIdent, 1 ) = '\' )
   do case
-  case lByDesc .or. lByModel .or. lBySerial // .or. ( asc( left( sIdent, 1 ) ) > 64 .and. asc( left( sIdent, 1 ) ) < 123 )
+  case lByDesc .or. lByModel .or. lBySerial .or. lByLocation // .or. ( asc( left( sIdent, 1 ) ) > 64 .and. asc( left( sIdent, 1 ) ) < 123 )
    t_flag := TRUE
-   assets->( ordsetfocus( if( lByDesc, 'desc', if( lByModel, 'model', 'serial' ) ) ) )
+   assets->( ordsetfocus( if( lByDesc, 'desc', if( lByModel, 'model', if( lBySerial, 'serial', 'location' ) ) ) ) )
    sIdent := upper( trim( substr( sIdent, 2, len( sIdent ) - 1 ) ) )
 
    if !assets->( dbseek( sIdent ) )
-    Error( 'No ' + if( lByDesc, 'Description', if( lByModel, 'Model', 'Serial' ) ) + ' match on file' , 12 )
+    Error( 'No ' + if( lByDesc, 'Description', if( lByModel, 'Model', if( lBySerial, 'serial', 'location' ) ) ) + ' match on file' , 12 )
     assets->( ordsetfocus( 'code' ) )
    
    else
     assets->( dbskip( 1 ) )
-    if left( if( lByDesc, upper( assets->desc ), if( lByModel, upper( assets->model ), upper( assets->serial ) ) ), len( sIdent ) ) != sIdent
+    if left( if( lByDesc, upper( assets->desc ), ;
+	         if( lByModel, upper( assets->model ), ;
+			 if( lBySerial, upper( assets->serial ), upper( assets->location ) ) ) ), len( sIdent ) ) != sIdent
      assets->( dbskip( -1 ) )
      sAssetCode := assets->code
      assets->( ordsetfocus( 'code' ) )
@@ -93,7 +97,8 @@ while TRUE
      
 	 oEnquire:skipBlock := { | SkipCnt | AwSkipIt( SkipCnt, ;
 	                         { || upper( left( if( lByDesc, assets->desc, ;
-	                         if( lByModel, assets->model, assets->serial ) ), ;
+	                         if( lByModel, assets->model, ;
+							 if( lBySerial, assets->serial, assets->location ) ) ), ;
 							 len( sIdent ) ) ) }, sIdent ) }
      
 	 oEnquire:addColumn( tbcolumnnew( 'Asset', { || assets->code } ) )

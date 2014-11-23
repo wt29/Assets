@@ -7,18 +7,17 @@
 */
 
 #include "assets.ch"
-#include "set.ch"
 
 Procedure Main()
 
 local nMenuChoice
-local mlen,getlist:={}
+local nLength
 local nMMchoice
 local aMenu
 local aMenuScr
 local okaf1
 local nSelRow
-local getdefprt := GetDefaultPrinter()
+// local oDefaultPrinter := GetDefaultPrinter()
 local aBox
 local sNoColor
 local sFile
@@ -27,11 +26,13 @@ local sFile
 local oPrinter
 #endif
 
-#ifdef GTWVW
+#ifdef __GTWVW__
 local lMainCoord := WVW_SetMainCoord( .t. )
 WVW_SetCodePage(,255)
+
 #else
 setmode( 25, 80 )
+
 #endif
         
 parameter sCmdParams
@@ -102,9 +103,9 @@ if !file( sFile )
 endif
 
 cls
-mlen := max( 15, ( 20 + len( trim( globalVars( B_COMPANY ) ) ) ) / 2 )
+nLength := max( 15, ( 20 + len( trim( globalVars( B_COMPANY ) ) ) ) / 2 )
 Heading('*** Welcome to ' + SYSNAME + ' ***')
-aBox := Box_Save( 06, 38-mlen, 12, 41+mlen, C_CYAN )
+aBox := Box_Save( 06, 38-nLength, 12, 41+nLength, C_CYAN )
 Center( 07, 'Copyright Bluegum Software' )
 Center( 08, SUPPORT_PHONE )
 Center( 09, 'Licensed to -=< ' + trim( globalVars( B_COMPANY ) ) + ' >=-' )
@@ -131,7 +132,7 @@ endif
 
 // altd(1)
 
-setkey( K_SH_F1, { || Print_swap() } )
+// setkey( K_SH_F1, { || Print_swap() } )
 // setkey( K_F2, { || StuffLastItem() } )
 // setkey( K_F3, { || StuffLastCont() } )
 // setkey( K_F5, { || Free_enq() } )
@@ -224,21 +225,9 @@ while TRUE
 
    endif
 
-  case nMMChoice = 3 .and. Secure( X_FILE )
-   Heading('Reports Menu')
-   aMenu := {}
-   aadd( aMenu, { 'Main', 'Return to top line options' } )
-   aadd( aMenu, { 'Assets', 'Asset File Reports', { || MainAsset() } } )
-   aadd( aMenu, { 'Owner', 'List of Oeners', { || MainOwne() } } )
-   nMenuChoice := MenuGen( aMenu, 1, 24, 'Reports', , , ,@nSelRow )
-
-   if nMenuChoice < 2
-    exit
-
-   else
-    Eval( aMenu[ nMenuChoice, 3 ] )
-
-   endif
+  case nMMChoice = 3 .and. Secure( X_REPORT )
+   AssetPrint()
+   exit
 
   case nMMChoice = 4 .and. Secure( X_STOCKTAKE )
    UtilStock()

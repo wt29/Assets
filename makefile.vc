@@ -4,7 +4,6 @@ HB_DIR = c:\develop\xharbour\1.20
 #HB_DIR = c:\hb30
  
 RECURSE= NO 
- 
 COMPRESS = NO
 EXTERNALLIB = NO
 XFWH = NO
@@ -19,21 +18,19 @@ GUI = NO
 MT = NO
 SRC09 = 
 CF = CFiles
-PROJECT = winrent.exe $(PR)
 
-PRGFILES = assets.prg Enquire.prg Mainitem.prg Mainowne.prg \
- Proclib.prg Setupdbf.prg Utilpack.prg Utilsppa.prg Utilstoc.prg \
- printfunc.prg errorsys.prg utillabe.prg
+PROJECT = assets.exe $(PR)
 
-CFILES = assets.c Enquire.c Mainitem.c Mainowne.c \
-  Proclib.c Setupdbf.c Utilpack.c Utilsppa.c Utilstoc.c \
-  printfunc.c errorsys.c utillabe.c
+PRGFILES = assets.prg Enquire.prg MainAsset.prg Mainowne.prg Proclib.prg Setupdbf.prg Utilpack.prg \
+           Utilsppa.prg Utilstoc.prg printfunc.prg errorsys.prg reports.prg
 
-OBJFILES = assets.obj Enquire.obj Mainitem.obj Mainowne.obj \
-  Proclib.obj Setupdbf.obj Utilpack.obj Utilsppa.obj Utilstoc.obj \
-  printfunc.obj errorsys.obj utillabe.obj
+CFILES = assets.c Enquire.c MainAsset.c Mainowne.c Proclib.c Setupdbf.c Utilpack.c Utilsppa.c \
+         Utilstoc.c printfunc.c errorsys.c  reports.c
 
-RESFILES = WINRENT.RES
+OBJFILES = assets.obj Enquire.obj MainAsset.obj Mainowne.obj Proclib.obj Setupdbf.obj Utilpack.obj \
+           utilsppa.obj utilstoc.obj printfunc.obj errorsys.obj  reports.obj
+
+RESFILES = ASSETS.RES
 RESDEPEN = 
 
 GTLIB = gtwvw.lib
@@ -53,8 +50,8 @@ LFLAGS= /NODEFAULTLIB:LIBC /NODEFAULTLIB:LIBCP
 LINKER = link
 .SUFFIXES: .c .obj .prg 
 
-ALLOBJ = $(OBJFILES) $(OBJCFILES)
-ALLRES = $(RESDEPEN) $(RESFILES)
+# ALLOBJ = $(OBJFILES) $(OBJCFILES)
+# ALLRES = $(RESDEPEN) $(RESFILES)
 ALLLIB = $(HBLIBS) $(CLIBS)
 
 .c.obj:
@@ -63,10 +60,9 @@ ALLLIB = $(HBLIBS) $(CLIBS)
 .prg.c:
 	$(HB_DIR)\bin\harbour /D__EXPORT__ /I$(HB_DIR)\include $(HARBOURFLAGS) $**
 
-
 .rc.res:
- $(CC_DIR)\rc $(RFLAGS) $<
+	$(CC_DIR)\rc $(RFLAGS) $<
  
-#BUILD
+# Build
 assets.exe: $(PRGFILES) $(CFILES) $(OBJFILES)
- link $(OBJFILES) $(HB_DIR)\obj\vc\mainwin.obj $(ALLLIB) $(ALLRES) /out:assets.exe /map:assets.map $(LFLAGS)
+	link $(OBJFILES) $(HB_DIR)\obj\vc\mainwin.obj $(ALLLIB) $(RESFILES) /out:assets.exe $(LFLAGS)

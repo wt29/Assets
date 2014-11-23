@@ -4,7 +4,7 @@ rem for Multi thread support, un-remark next line
 set HB_MT=MT
 
 rem nmake
-call m_bcc.cmd
+call m_vc.cmd
 if not exist assets.exe goto noexe
 goto end
 :noexe 
