@@ -33,7 +33,7 @@ Version History
 
 #define C_BACKGROUND 'BG'
 
-#define __GTWVW__
+// #define __GTWVW__
 
 #define TEMP_EXT '.ass'
 
