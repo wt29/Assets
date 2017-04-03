@@ -66,14 +66,14 @@ WvW_SBSetText( oWindow, 0 , "System Info" )
    
 local cScr := Box_Save( 2, 05, 10, 76 )
 #endif
-Highlight( 00, 00, 'OS', os() )
-Highlight( 01, 00, 'RDD', rddsetdefault() )
-Highlight( 02, 00, 'Index Ext', ordbagext() )
-Highlight( 03, 00, 'Compiler', version() )
-Highlight( 04, 00, 'Free Pool', Ns( memory(0) ) )
-Highlight( 05, 00, SYSNAME + ' Build Ver', BUILD_NO )
-Highlight( 06, 00, 'Node', LVars( L_NODE ) )
-Highlight( 07, 00, '', '' )
+Highlight( 03, 06, 'OS', os() )
+Highlight( 04, 06, 'RDD', rddsetdefault() )
+Highlight( 05, 06, 'Index Ext', ordbagext() )
+Highlight( 06, 06, 'Compiler', version() )
+Highlight( 07, 06, 'Free Pool', Ns( memory(0) ) )
+Highlight( 08, 06, SYSNAME + ' Build Ver', BUILD_NO )
+Highlight( 09, 06, 'Node', LVars( L_NODE ) )
+//  Highlight( 07, 00, '', '' )
 //   :Activate( .T., .T. ) // Instead of READ CYCLE
 //      :Close()
    

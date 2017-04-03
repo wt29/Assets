@@ -32,3 +32,5 @@ dbfstru/
 *.txt
 *.prn
 *.old
+*.log
+assets.exe.xbp
